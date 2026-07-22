@@ -5,7 +5,6 @@ from vanilla emacs. The hope is to get to the point where I can comfortably repl
 IDEs with Emacs, and importantly understand how I can extend it to go even further.
 
 Each post is intended to explore different concepts to actually understand what extensions/workflows work well 
-and *why* they work well for me. 
+and *why* they work well (or not well) for me. 
 
 I am not an Emacs expert, in fact I am brand new to the ecosystem. I will probably get things wrong.
-

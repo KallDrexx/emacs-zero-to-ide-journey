@@ -4,7 +4,7 @@ This post reflects on the personal motivations for going on this Emacs journey, 
 this document even exists. It's mostly designed around giving some optional context to
 the framing of the articles that will follow. 
 
-As a word of warning it may be kind of rambly, moreso than most of the other posts
+As a word of warning it may be kind of rambly, more-so than most of the other posts
 in this series.
 
 ## Why DE-IDE
@@ -106,9 +106,9 @@ in a buffer to make the relevant parts of a flame graph more prominent.
 The scriptability also seems like it will make it easier to customize functionality
 that plugins add without modifying the plugins themselves.
 
-At times that I have tested it, the built in terminal in Neovim has felt laggy
-(though it's not always reproducible to me). There are many times I need a 
-terminal and it would be nice to not have to go outside of my main editing environment
+The built in `:term` terminal in Neovim feels extremely laggy and lackluster, at
+least on my Mac OS work machine. There are many times I need a terminal and it would 
+be nice to not have to go outside of my main editing environment
 (especially at work where Mac OS doesn't have as flexible tiling as my Linux setup).
 I have also had the 
 
@@ -129,4 +129,24 @@ whatever reason I am keen to give it a fair try.
 
 If my Emacs journey is a failure then maybe I'll end up back in Neovim world anyway, but
 at least I would have fully explored my options.
+
+## Why Vanilla Emacs
+
+A lot of recommendations seem to push new emacs users towards a distribution, such as
+[Doom Emacs](https://github.com/doomemacs). These distributions are well thought out, but
+they are opinionated by design. I was unsure how to customize it against Doom's custom
+configuration vs using standard elisp. I also did not feel the documentation was great for 
+someone who was not fully familiar with emacs. 
+
+I tried a much lighter configuration such as [Emacs-Kick](https://github.com/LionyxML/emacs-kick).
+This was closer to what I wanted with a very well documented pure elisp configuration that 
+in theory showed how to go from vanilla to customized. However, there are a lot of customizations
+it makes and understanding what capabilities I even had (let alone how they worked) wasn't easy for me. It
+already had the kitchen sink activated.
+
+So I decided I wanted to start from first principals. What capabilities does Emacs have, can I explore
+them one at a time, and how can I add packages as I understand the need for them.
+
+And thus, this series was born.
+
 

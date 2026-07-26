@@ -100,5 +100,6 @@ load next time with the defaults. We can save with `C-x C-s` (`Ctrl+x` then
 
 ![write confirmed](saved.png)
 
-If you now restart emacs then it will not have the icon toolbar.
+If you now restart emacs then it will not have the icon toolbar, as the `init.el`
+scripts will run on every start.
 

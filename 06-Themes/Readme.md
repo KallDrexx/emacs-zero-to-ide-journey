@@ -44,4 +44,31 @@ string literal and not a function to be evaluated. Without this, it will try to 
 You may find a built-in theme that you are satisfied with, but if not you are not limited by
 those choices. Many third party packages include additional themes.
 
+One comprehensive theme pack is the 
+[themes from the Doom emacs distribution](https://github.com/doomemacs/themes/tree/screenshots).
 
+The theme pack can be loaded via
+
+```elisp
+(use-package doom-themes
+  :ensure t
+  :custom
+  ;; Global settings (defaults)
+  (doom-themes-enable-bold t)   ; if nil, bold is universally disabled
+  (doom-themes-enable-italic t) ; if nil, italics is universally disabled
+)
+```
+
+Save this in your `init.el`, then put the cursor on the last `)` and do `C-x C-e` 
+(Ctrl+x then Ctrl+e). This evaluates the previous statement. In the bottom minibuffer
+you should see it reading and trying to download the new package.
+
+Now when you do `M-x load-themes` and hit tab you should see a new list of packages
+installed.
+
+![installed doom themes](theme-list-doom.png)
+
+Experiment with the different themes, and once you picked one set your `init.el`
+to have `(load-theme '<theme-name>)` in it!
+
+![final with theme](theme-config.png)

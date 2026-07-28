@@ -13,9 +13,14 @@ emacs through a graphical interface rather than programmatically. In theory this
 lets aspects of Emacs changes to be more discoverable.
 
 When changes through the customization system are made, it is saved by writing
-the equivalent elisp code. It's not just manual customizations that can trigger
-this code generation though, some `init.el` configuration code can cause
-the code generation to occur as well.
+the equivalent elisp code. 
+
+However, it's not just manual customizations via the UI that can trigger code
+generation. There is a function called `customize-set-variable`, which sets the 
+default value for buffer local variables. Calling this function marks the variable as
+set in the customization system, and thus triggers code generation. This is a setting
+used in a lot of configurations and thus there's no getting around it customization
+code-gen.
 
 By default, this generated code goes into your initialization file (e.g. 
 `init.el`). This can be a bit messy, but you can add code to your emacs
@@ -31,14 +36,16 @@ The name doesn't have to be `custom-vars.el`, it can be anything you wish.
 The `locate-user-emacs-file` function will ensure its in the same directory
 as the `init.el` file.
 
-## Menu bar
+## Global Setting Functions
+
+### Menu bar
 
 If you don't like the menu bar at the top (File, Edit, etc...) then that can
 be disabled with `(menu-bar-mode -1)`. That being said I find the menu bar
 does not take much space and is helpful for remembering key binds and 
 major mode functionality. Therefore, I leave it enabled with `(menu-bar-mode 1)`.
 
-## Disabling the Scroll Bar
+### Disabling the Scroll Bar
 
 If you do not want to see the scroll bar, it can be disabled via 
 
@@ -47,7 +54,7 @@ If you do not want to see the scroll bar, it can be disabled via
   (scroll-bar-mode -1))
 ```
 
-## Fonts
+### Fonts
 
 Since I come from a JetBrains background, I am used to using the `JetBrains Mono` font, not
 only in my IDE but also in my terminal. I also use the
@@ -59,8 +66,58 @@ Regardless of what font you wish to use, you can get Emacs to use them in the GU
 (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font" :height 100)
 ```
 
+## Buffer Local Settings
 
-## Tab Indentation
+Some variables are buffer local, which means they only affect the buffer they were set
+with. This allows customizations for how Emacs looks and behaves for each buffer that
+is opened. This allows changing behavior based on what programming language, file type,
+or custom Emacs display is being viewed at any given time.
+
+This also means you can't have your `init.el` file set the variable value (via 
+`(setq <variable> <value)` for these, because they won't apply to any buffer.
+
+In theory, you can set these globally via `(setq-default <variable> <value>)`. The caveat
+to that is that many Emacs variables contain a `:set` function on them that not only
+sets the value of the variable, but executes any side effects required for the new value
+to take effect.
+
+`setq` and `setq-default` do not run these. Instead `(customize-set-variable <variable> <value>)`
+should be used, which will execute the `:set` function if they exist.
+
+If you are unsure a variable is buffer local vs global, you can always use `M-x describe-variable`.
+However, most variables I have come across are buffer local, and the global ones tend to start
+with the `global-` prefix.
+
+It's also worth keeping in mind that the variable name provided to `customize-set-variable` is
+a string literal of the name of the variable. Therefore, `(customize-set-variable foo t)` is
+**NOT** valid but `(customize-set-variable 'foo t)` is valid (specifically the `'` added in).
+
+To simplify things, Emacs has a `use-package` macro, which will be described more in depth later.
+However, this macro can be used to group Emacs configuration values together and simplify these
+customization settings. So instead of:
+
+```elisp
+(customize-set-variable 'var1 t)
+(customize-set-variable 'var2 nil)
+```
+
+You can have 
+```elisp
+(use-package emacs
+  :ensure nil ;; built in
+  :custom
+  (var1 t)
+  (var2 nil)
+```
+
+This gives all your common emacs settings a common indentation, and requires less typing
+(and not having to remember the `customize-set-variable` or single quote) to set variables.
+
+This is the preferable way to set emacs customizations, and the settings below assume you are
+using this syntax.
+
+
+### Tab Indentation
 
 The tab key does not work the same way as it does in most other editors. In most text
 editors indentation isn't a real concept, but instead is purely a visual idea we have
@@ -76,40 +133,58 @@ language and text settings in the current buffer).
 Tab width and tabs vs spaces can be configured with the following settings:
 
 ```elisp
-(setq tab-width 4)             ;; Set the tab width to 4 spaces.
-(setq indent-tabs-mode nil)    ;; Disable the use of tabs for indentation (use spaces instead).
+(customize-set-variable 'tab-width 4)             ;; Set the tab width to 4 spaces.
+(customize-set-variable 'indent-tabs-mode nil)    ;; Disable the use of tabs for indentation (use spaces instead).
+
 ```
 
-## Misc Variables
+### Text Wrapping
+
+By default, Emacs will wrap text to the next line on the character that collides with the
+border of the screen.
+
+![default text wrapping](word-wrap-1.png)
+
+You can see it shows indicators on the right side and the left side when wrapping occurred.
+
+By setting `(customize-set-variable 'word-wrap t)` it then wraps on whole words, with long words moving
+completely to the next line (Note that you may have to move your cursor to a new line
+to get this to go into effect after evaluations).
+
+![word wrapping](word-wrap-2.png)
+
+If you want no text wrapping at all, it can be disabled via 
+`(customize-set-variable 'truncate-lines t)`.
+
+![no text wrapping](truncate.png)
+
+You still get indicators to know when some of the text has gone past the screen.
+
+### Misc Variables
 
 Most of the following variables I have taken from the 
 [Emacs-Kick init.el](https://github.com/LionyxML/emacs-kick/blob/master/init.el#L213)
 configuration file, as they are defaults that make sense for me.
 
 ```elisp
-(setq auto-save-default nil)                         ;; Disable automatic saving of buffers.
-(setq column-number-mode t)                          ;; Display the column number in the mode line.
-(setq create-lockfiles nil)                          ;; Prevent the creation of lock files when editing.
-(setq delete-by-moving-to-trash t)                   ;; Move deleted files to the trash instead of permanently deleting them.
-(setq delete-selection-mode 1)                       ;; Enable replacing selected text with typed text.
-(setq display-line-numbers-type 'relative)           ;; Use relative line numbering in programming modes.
-(setq global-auto-revert-non-file-buffers t)         ;; Automatically refresh non-file buffers.
-(setq history-length 25)                             ;; Set the length of the command history.
-(setq inhibit-startup-message t)                     ;; Disable the startup message when Emacs launches.
-(setq initial-scratch-message "")                    ;; Clear the initial message in the *scratch* buffer.
-(setq ispell-dictionary "en_US")                     ;; Set the default dictionary for spell checking.
-(setq make-backup-files nil)                         ;; Disable creation of backup files.
-(setq pixel-scroll-precision-mode t)                 ;; Enable precise pixel scrolling.
-(setq pixel-scroll-precision-use-momentum nil)       ;; Disable momentum scrolling for pixel precision.
-(setq ring-bell-function 'ignore)                    ;; Disable the audible bell.
-(setq split-width-threshold 300)                     ;; Prevent automatic window splitting if the window width exceeds 300 pixels.
-(setq switch-to-buffer-obey-display-actions t)       ;; Make buffer switching respect display actions.
-(setq tab-always-indent 'complete)                   ;; Make the TAB key complete text instead of just indenting.
-(setq treesit-font-lock-level 4)                     ;; Use advanced font locking for Treesit mode.
-(setq truncate-lines t)                              ;; Enable line truncation to avoid wrapping long lines.
-(setq use-dialog-box nil)                            ;; Disable dialog boxes in favor of minibuffer prompts.
-(setq use-short-answers t)                           ;; Use short answers in prompts for quicker responses (y instead of yes)
-(setq warning-minimum-level :emergency)              ;; Set the minimum level of warnings to display.
+(customize-set-variable 'auto-save-default nil)                         ;; Disable automatic saving of buffers.
+(customize-set-variable 'column-number-mode t)                          ;; Display the column number in the mode line.
+(customize-set-variable 'create-lockfiles nil)                          ;; Prevent the creation of lock files when editing.
+(customize-set-variable 'delete-by-moving-to-trash t)                   ;; Move deleted files to the trash instead of permanently deleting them.
+(customize-set-variable 'delete-selection-mode 1)                       ;; Enable replacing selected text with typed text.
+(customize-set-variable 'display-line-numbers-type 'relative)           ;; Use relative line numbering in programming modes.
+(customize-set-variable 'global-auto-revert-non-file-buffers t)         ;; Automatically refresh non-file buffers.
+(customize-set-variable 'history-length 25)                             ;; Set the length of the command history.
+(customize-set-variable 'ispell-dictionary "en_US")                     ;; Set the default dictionary for spell checking.
+(customize-set-variable 'make-backup-files nil)                         ;; Disable creation of backup files.
+(customize-set-variable 'pixel-scroll-precision-mode t)                 ;; Enable precise pixel scrolling.
+(customize-set-variable 'pixel-scroll-precision-use-momentum nil)       ;; Disable momentum scrolling for pixel precision.
+(customize-set-variable 'ring-bell-function 'ignore)                    ;; Disable the audible bell.
+(customize-set-variable 'split-width-threshold 300)                     ;; Prevent automatic window splitting if the window width exceeds 300 pixels.
+(customize-set-variable 'switch-to-buffer-obey-display-actions t)       ;; Make buffer switching respect display actions.
+(customize-set-variable 'use-dialog-box nil)                            ;; Disable dialog boxes in favor of minibuffer prompts.
+(customize-set-variable 'use-short-answers t)                           ;; Use short answers in prompts for quicker responses (y instead of yes)
+(customize-set-variable 'warning-minimum-level :emergency)              ;; Set the minimum level of warnings to display.
 ```
 
 

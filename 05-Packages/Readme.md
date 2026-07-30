@@ -53,7 +53,8 @@ error will occur.
 
 ## Use-Package Macro
 
-To actually install a package, the `use-package` macro is used. Packages are then
+To actually install a package, the `use-package` macro is used (the same macro
+we used to configure emacs settings in the last post). Packages are then
 installed an managed via a syntax like:
 
 ```elisp
@@ -76,6 +77,8 @@ There are other macro sections but these are the main ones I see used.
 * `:init` is used to run some code before the package is loaded. This seems
   to be done in order to have variables set and ready to go so the package's
   loading code can read and utilize them.
+* `:custom` is used to provide a list of variables that should have 
+  `customize-set-variable` called for.
 * `:config` is used to specify code that should be run after it is loaded. This
   is usually done to set configuration values for the package.
 * `:bind` allows binding keys for the package after it has been loaded

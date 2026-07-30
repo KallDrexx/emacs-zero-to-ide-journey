@@ -69,6 +69,8 @@ installed.
 ![installed doom themes](theme-list-doom.png)
 
 Experiment with the different themes, and once you picked one set your `init.el`
-to have `(load-theme '<theme-name>)` in it!
+to have `(load-theme '<theme-name>)` in it. The `(load-theme)` function call
+can either go in your `:init` section of the `use-package` of the package that
+installs the theme, or your `use-package emacs` call if it's a built-in theme.
 
 ![final with theme](theme-config.png)

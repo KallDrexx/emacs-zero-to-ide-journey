@@ -92,31 +92,6 @@ It's also worth keeping in mind that the variable name provided to `customize-se
 a string literal of the name of the variable. Therefore, `(customize-set-variable foo t)` is
 **NOT** valid but `(customize-set-variable 'foo t)` is valid (specifically the `'` added in).
 
-To simplify things, Emacs has a `use-package` macro, which will be described more in depth later.
-However, this macro can be used to group Emacs configuration values together and simplify these
-customization settings. So instead of:
-
-```elisp
-(customize-set-variable 'var1 t)
-(customize-set-variable 'var2 nil)
-```
-
-You can have 
-```elisp
-(use-package emacs
-  :ensure nil ;; built in
-  :custom
-  (var1 t)
-  (var2 nil)
-```
-
-This gives all your common emacs settings a common indentation, and requires less typing
-(and not having to remember the `customize-set-variable` or single quote) to set variables.
-
-This is the preferable way to set emacs customizations, and the settings below assume you are
-using this syntax.
-
-
 ### Tab Indentation
 
 The tab key does not work the same way as it does in most other editors. In most text
@@ -160,31 +135,75 @@ If you want no text wrapping at all, it can be disabled via
 
 You still get indicators to know when some of the text has gone past the screen.
 
-### Misc Variables
+## Organizing These Settings
 
+Between the last post and this post we have 3 different type of settings
+
+1. Global variables (e.g. `gc-cons-threshold` and `custom-file`
+2.* Functions to call on initialization (e.g. `menu-bar-mode`)
+3.* Buffer local variables whose defaults we want to set (e.g. `tab-width`)
+
+While global variable settings should still be set at the beginning of your 
+`init.el` file via `setq` calls, we can organize the latter two using the
+Emacs `use-package` macro.
+
+The `use-package` macro has two relevant sections, `:custom` and `:init`. 
+
+`:custom` allows us to easily define buffer local variables whose defaults we want to set.
+Instead of `(customize-set-variable 'var1 nil` we can instead specify `(var1 nil)` in
+this section.
+
+The `:init` will call any functions we place in there upon package initialization.
+
+While I will go into package management in a later post, Emacs contains an
+`emacs` package that can be used to organize built-in emacs setting initialization.
+
+For example, we can organize our current settings in the `init.el` with:
+
+```elisp
+(use-package emacs
+  :ensure nil ;; built-in package
+  :init
+  (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font" :height 100)
+  (tool-bar-mode -1) ;; disable the toolbar
+  (menu-bar-mode 1)  ;; Keep the menu bar
+  (when scroll-bar-mode
+    (scroll-bar-mode -1)) ;; Disable the scroll bar
+
+  :custom
+  (tab-width 4)
+  (indent-tabs-mode nil)
+  (truncate-lines t)
+)
+```
+
+### Additional Customization Variables
+
+I have some additional customization variables that is a good starting point as well.
 Most of the following variables I have taken from the 
 [Emacs-Kick init.el](https://github.com/LionyxML/emacs-kick/blob/master/init.el#L213)
 configuration file, as they are defaults that make sense for me.
 
 ```elisp
-(customize-set-variable 'auto-save-default nil)                         ;; Disable automatic saving of buffers.
-(customize-set-variable 'column-number-mode t)                          ;; Display the column number in the mode line.
-(customize-set-variable 'create-lockfiles nil)                          ;; Prevent the creation of lock files when editing.
-(customize-set-variable 'delete-by-moving-to-trash t)                   ;; Move deleted files to the trash instead of permanently deleting them.
-(customize-set-variable 'delete-selection-mode 1)                       ;; Enable replacing selected text with typed text.
-(customize-set-variable 'display-line-numbers-type 'relative)           ;; Use relative line numbering in programming modes.
-(customize-set-variable 'global-auto-revert-non-file-buffers t)         ;; Automatically refresh non-file buffers.
-(customize-set-variable 'history-length 25)                             ;; Set the length of the command history.
-(customize-set-variable 'ispell-dictionary "en_US")                     ;; Set the default dictionary for spell checking.
-(customize-set-variable 'make-backup-files nil)                         ;; Disable creation of backup files.
-(customize-set-variable 'pixel-scroll-precision-mode t)                 ;; Enable precise pixel scrolling.
-(customize-set-variable 'pixel-scroll-precision-use-momentum nil)       ;; Disable momentum scrolling for pixel precision.
-(customize-set-variable 'ring-bell-function 'ignore)                    ;; Disable the audible bell.
-(customize-set-variable 'split-width-threshold 300)                     ;; Prevent automatic window splitting if the window width exceeds 300 pixels.
-(customize-set-variable 'switch-to-buffer-obey-display-actions t)       ;; Make buffer switching respect display actions.
-(customize-set-variable 'use-dialog-box nil)                            ;; Disable dialog boxes in favor of minibuffer prompts.
-(customize-set-variable 'use-short-answers t)                           ;; Use short answers in prompts for quicker responses (y instead of yes)
-(customize-set-variable 'warning-minimum-level :emergency)              ;; Set the minimum level of warnings to display.
+  (auto-save-default nil)                         ;; Disable automatic saving of buffers.
+  (column-number-mode t)                          ;; Display the column number in the mode line.
+  (create-lockfiles nil)                          ;; Prevent the creation of lock files when editing.
+  (delete-by-moving-to-trash t)                   ;; Move deleted files to the trash instead of permanently deleting them.
+  (delete-selection-mode 1)                       ;; Enable replacing selected text with typed text.
+  (display-line-numbers-type 'relative)           ;; Use relative line numbering in programming modes.
+  (global-auto-revert-non-file-buffers t)         ;; Automatically refresh non-file buffers.
+  (history-length 25)                             ;; Set the length of the command history.
+  (ispell-dictionary "en_US")                     ;; Set the default dictionary for spell checking.
+  (make-backup-files nil)                         ;; Disable creation of backup files.
+  (pixel-scroll-precision-mode t)                 ;; Enable precise pixel scrolling.
+  (pixel-scroll-precision-use-momentum nil)       ;; Disable momentum scrolling for pixel precision.
+  (ring-bell-function 'ignore)                    ;; Disable the audible bell.
+  (split-width-threshold 300)                     ;; Prevent automatic window splitting if the window width exceeds 300 pixels.
+  (switch-to-buffer-obey-display-actions t)       ;; Make buffer switching respect display actions.
+  (use-dialog-box nil)                            ;; Disable dialog boxes in favor of minibuffer prompts.
+  (use-short-answers t)                           ;; Use short answers in prompts for quicker responses (y instead of yes)
+  (warning-minimum-level :emergency)              ;; Set the minimum level of warnings to display.
 ```
 
+Don't forget to save and use `M-x eval-buffer` to make them take effect!
 

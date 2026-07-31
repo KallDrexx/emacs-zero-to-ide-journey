@@ -60,6 +60,83 @@ results.
 ![marginalia find file](marginalia-2.png)
 
 
+### More Flexible Typing
+
+These enhancements have made the minibuffer a bit more easier to manage, and made
+it easier to discover and invoke desired functions. It can still be improved though.
+
+For example, if we know we want to have Emacs re-evaluate the whole buffer but don't
+remember the exact function name, we can type `M-x evbuff` and our current setup will
+successfully match on that (and some other close options).
+
+![evbuff example](evbuff.png)
+
+However, if you think about commands as separate words that happen to be separated
+by a space you might want to search with `M-x ev<space>buff`. If you try this though
+you end up with the following:
+
+![evbuff dash](evbuff-dash.png)
+
+This probably wasn't what you meant. It becomes even more obvious if you do `M-x buff<Space>`,
+as that completes the minibuffer to `M-x buffer-`. What's happening is the `<Space>` key is bound to 
+`minibuffer-complete-word`, and is the same as `<Tab>`.
+
+We can customize this but setting a keymap only after `icomplete` has loaded. 
+`icomplete` is the built in minibuffer completion framework and `fido` is an
+extension of it that we are using for vertical support. So by adding the following
+to the `:init` section of our `use-package emacs` directive, we can get actual
+spaces in our minibuffer.
+
+```elisp 
+  (with-eval-after-load 'icomplete
+    (keymap-set icomplete-fido-mode-map "SPC" #'self-insert-command))
+```
+
+Now if you re-evaluate the buffer, typing `M-x ev<Space>buff` will show `ev buff` in the
+minibuffer.
+
+However, now we have a problem. Searching for `ev buff` doesn't find anything because no
+interactive commands actually have a space in their name.
+
+![no matches](evbuff-no-orderless.png)
+
+This is where a helpful package called [orderless](https://github.com/oantolin/orderless) 
+becomes useful. It breaks the minibuffer completion options into distinct words that
+can be fuzzily searched in any order. 
+
+So lets add the package with the following in our `init.el` file:
 
 
+```elisp
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-category-defaults nil)
+  (completion-category-overrides '((file (styles partial-completion))))
+  )
+
+(defun my-icomplete-styles ()
+  (setq-local completion-styles '(orderless basic)))
+
+(add-hook 'icomplete-minibuffer-setup-hook 'my-icomplete-styles)
+```
+
+Once that's re-evaluated the orderless package should be installed. Now if you
+type `M-x ev<Space>buff` you get useful results.
+
+![matches](evbuff-orderless.png)
+
+The real power of this is to not have to remember the exact order of terms. So this
+same list of options comes up with `M-x buff<Space>ev` as well.
+
+![buffev](buffev.png)
+
+This also works as expected for the `find-file` commands.
+
+![find-files](orderless-files.png)
+
+If you are curious, the reason the `add-hook` function call is needed is because
+every time `icomplete` is invoked, it resets the completion styles. So we need to
+make sure that our function with sets the `completion-styles` variable is invoked
+after `icomplete` is set up.
 

@@ -140,3 +140,40 @@ every time `icomplete` is invoked, it resets the completion styles. So we need t
 make sure that our function with sets the `completion-styles` variable is invoked
 after `icomplete` is set up.
 
+## Minibuffer Word Wrapping
+
+With marginalia activated and an Emacs window of limited width, it is possible to
+have minibuffer completion options to be word wrapped. This has the unfortunate
+interaction with `fido-vertical-mode` where options below the visible minibuffer
+area are not visible. 
+
+![word wrapping](wrapped.png)
+
+In this example I have the 6th item selected, but you can't see which option
+that actually is. Presumably this is because the selection UI does not realize
+that word wrapped lines cause the 6th item to not be on the 6th line, and thus
+out of view.
+
+Like everything else in Emacs, this can be customized by using a hook to call
+a function when the minibuffer is setup. In the `use-package emacs` add:
+
+```elisp
+  :hook (minibuffer-setup . (lambda () (setq truncate-lines t)))
+```
+
+When the minibuffer is created, it will now run the provided lambda function
+and thus truncate the lines instead of word wrapping.
+
+![truncated](truncated.png)
+
+We can consolidate this hook with the `add-hook` function call we previously added.
+If we add `(setq-local truncate-lines t)` to our `defun my-icomplete-styles` and
+remove the `(add-hook)` line, we can then change the `:hook` section to be:
+
+```elisp
+  :hook
+  (icomplete-minibuffer-setup . my-icomplete-styles)
+```
+
+That will now have the same effect as we had before with the `my-icomplete-styles`
+being invoked any time the icomplete minibuffer is setup.

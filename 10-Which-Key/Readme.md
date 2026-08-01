@@ -31,3 +31,22 @@ We can make sure `which-key-mode` is enabled by adding the following to our
 ```elisp
 (after-init . which-key-mode)
 ```
+
+Which-key is dynamic based on the actual Emacs key bindings. That means that third party
+packages that add key bindings do not need to do anything special (presumably?) to add
+their keys to it.
+
+For example, going into the Treemacs window and typing `o` will pop up:
+
+![treemacs o prefix](treemacs-o.png)
+
+One aspect that is noticable is that some of the treemacs commands are cut off. We can
+assume what some of them mean but it's obvious this could become a problem for some
+packages.
+
+Using `M-x describe-variable` we can see that the maximum length by default is `27`
+characters. Setting this to `50` makes it much more usable:
+
+![treemacs o 50 chars](treemacs-o-max.png)
+
+We can add `(which-key-max-description-length 50)` in our `use-package emacs` `:custom` section.

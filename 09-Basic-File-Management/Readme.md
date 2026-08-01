@@ -168,6 +168,19 @@ me to map different directory roots I have on my system and being able to quickl
 switch between them without typing absolute paths. This is something I will
 definitely be digging into later.
 
+Some keys in the Treemacs buffer have their own prefixes, namely `o` and `c`.
+
+The `o` prefix allows a variety of ways to open files, you can
+* Open it directly in the main window via `o o`
+* Open it in a new window that's horizontally split from the current window with `o h`
+* Open it in a new window that's vertically split from the current window with `o v`.
+
+That seems to give a lot more flexibility than dired has, but that may mostly be
+due to discoverability with the right click menu.
+
+Likewise, the `c` prefix can be used to add files and directories to the currently
+selected file.
+
 All in all, I am very happy with the UI treemacs provides.
 
 I have also added the following to my `init.el`:

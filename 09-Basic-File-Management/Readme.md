@@ -117,6 +117,26 @@ Finally, for any Mac users I see this in a lot of dired configurations to use GN
         (setq insert-directory-program gls)))))
 ```
 
+### Quick Searching
+
+Exploring the file system one file and directory at a time isn't always the most efficient. We can instead
+use search capabilities to recursively search for files and open dired instances just for those files.
+
+This is done via `M-x find-name-dired`, which searches recursively in the directory you specify (in the first
+argument) for the file name pattern you specify (in the second argument). The file name pattern is what Emacs
+will send as the `PATTERN` in a `find DIR -name PATTERN` call.
+
+So lets search for all `Readme.md` files that I have written so far:
+
+![find-files-dired](find-files-dired.png)
+
+This has all the flexibility of the dired interface but with a more precise set of files that I am potentially
+looking for.
+
+We can also use the `M-x find-grep-dired` to do the same but with a grep command. This is not as useful as I
+hoped, as the dired buffer starts to show it's limitations. Ideally it would not only show a list of but also
+grep snippets from each file that I can use to narrow the search a bit more.
+
 ## Treemacs
 
 So Dired is pretty flexible and powerful. In fact I should definitely get more experience with it
@@ -144,7 +164,6 @@ Lets install it by adding the following to our `init.el`:
         ("C-x t B"   . treemacs-bookmark)
         ("C-x t C-t" . treemacs-find-file)
         ("C-x t M-t" . treemacs-find-tag))
-
   )
 ```
 
@@ -193,4 +212,4 @@ I have also added the following to my `init.el`:
 ```
 
 This adds Treemacs icons to the dired interface. Treemacs has a different purpose
-for me than dired, so having similarities between the two has some advantages for me.
+for me than dired, and I can see both will being used in normal Emacs life.

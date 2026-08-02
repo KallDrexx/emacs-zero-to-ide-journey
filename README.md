@@ -6,7 +6,10 @@ IDEs with Emacs, and importantly understand how I can extend it to go even furth
 
 Each post is intended to explore different concepts to actually understand what 
 extensions/workflows work well and *why* they work (or not) for me. Most of the
-posts will not be quick tips and instead will be an in depth look at specific areas.
+posts will not be quick tips and instead will be an in depth look at specific areas. 
+
+The posts are also ordered in general sequence that I discovered the functionality at, and may not
+necessarily be the most logical ordering from a newbie perspective.
 
 I am not an Emacs expert, in fact I am brand new to the ecosystem. I will probably get things wrong.
 

@@ -1,5 +1,14 @@
 # Themes
 
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [Loading A Theme](#loading-a-theme)
+  - [External Themes](#external-themes)
+
+<!-- markdown toc end -->
+
+
 Everyone has their preference of color-schemes for their editors, and
 Emacs does not impose it's own scheme on you. 
 

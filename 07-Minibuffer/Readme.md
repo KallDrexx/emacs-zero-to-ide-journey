@@ -1,5 +1,17 @@
 # Enhancing The Minibuffer
 
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [Default Functionality](#default-functionality)
+  - [Immediate Feedback](#immediate-feedback)
+  - [Adding More Info](#adding-more-info)
+    - [More Flexible Typing](#more-flexible-typing)
+  - [Minibuffer Word Wrapping](#minibuffer-word-wrapping)
+
+<!-- markdown toc end -->
+
+
 ## Default Functionality
 
 When you activate a command in the minibuffer (such as `M-x` to run

@@ -1,5 +1,16 @@
 # Markdown Support
 
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [Intro](#intro)
+  - [Adding A Markdown Major Mode](#adding-a-markdown-major-mode)
+  - [Generating Table Of Contents](#generating-table-of-contents)
+
+<!-- markdown toc end -->
+
+## Intro
+
 So far I have been writing these posts as plain text files and validating
 they render as expected outside of Emacs. It's time to fix that.
 
@@ -21,12 +32,12 @@ completion-at-point support, etc...
 
 If we go to the markdown file I am currently writing, we see:
 
-
-
 ![md mode line](md-mode-line.png)
 
 We can see this shows the `Fundamental` major mode and the `WK` minor mode. The 
 `Fundamental` mode is the most basic text editing major mode that Emacs has.
+
+## Adding A Markdown Major Mode
 
 In order to make Emacs more functional for writing markdown, we need to enable a markdown
 specific major mode. Unfortunatly, as of Emacs 30 (the current released version) there is
@@ -43,7 +54,6 @@ like I should use that one. However from a quick glance it appears slightly less
 feature-full, less documented, and requires third party tree-sitter support. I will need
 tree-sitter, but I will have to dedicate some time to properly tackle that.
 
-From what I have seen the Emacs 31 native markdown-ts-mode might be a better choice once
 that's released. It will be easy to switch once that occurs.
 
 To activate `markdown-mode`, I just had to add the following to my to my `init.el`:
@@ -65,4 +75,41 @@ There are a lot of options and commands available in this mode, and maybe I will
 them a bit more in due time. I can explore a lot of different options using `C-c` and
 letting `which-key` pop up available options. 
 
-It seems that `C-c` tends to be used by different modes to expose custom functionality.
+## Generating Table Of Contents
+
+We can add a package called `markdown-toc` in order to automatically generate and refresh
+table of contents:
+
+```elisp
+(use-package markdown-toc
+  :ensure t
+  )
+```
+
+Now we can place the cursor where we want the TOC generated and use
+`M-x generate-toc-generate-or-refresh-toc` and viola!.
+
+For a variety of reasons many Markdown guidelines usually only have one level 1 heading 
+per page, and that usually includes the title of the page. It usually is not helpful
+to have the level 1 heading in the table of contents, since it's at the top of the page
+anyway.
+
+We can customize the TOC generation in the following way:
+
+```elisp
+(defun my/markdown-toc-manip (toc-structure)
+  ;; Don't include level 1 headings
+  (-filter (lambda (l) (let ((index (car l))) (<= 1 index))) toc-structure)
+  )
+
+(use-package markdown-toc
+  :ensure t
+  :custom
+  (markdown-toc-user-toc-structure-manipulation-fn 'my/markdown-toc-manip)
+  (markdown-toc-header-toc-start "<!-- markdown toc start -->")
+  (markdown-toc-header-toc-end "<!-- markdown toc end -->")
+  )
+```
+
+This makes it so that only level 2 headings and above will be listed. It also customizes
+the start and end tags to not have Emacs specific settings in it.

@@ -1,5 +1,15 @@
 # Packages 
 
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [Package Management](#package-management)
+  - [Package Archives](#package-archives)
+  - [Use-Package Macro](#use-package-macro)
+
+<!-- markdown toc end -->
+
+
 Packages are how Emacs gets additional functionality added in. 
 
 ## Package Management

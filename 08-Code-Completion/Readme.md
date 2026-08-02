@@ -1,5 +1,17 @@
 # Code Completion UI
 
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [What Is Code Completion](#what-is-code-completion)
+  - [Built-In UI](#built-in-ui)
+  - [Completion Popup](#completion-popup)
+
+<!-- markdown toc end -->
+
+
+## What Is Code Completion
+
 Almost all editors support the ability to display a list of completion options 
 that's based on the core area of text you are typing from. Sometimes this is
 automatic as you are typing, other times it has to be manually invoked via a
@@ -30,7 +42,7 @@ The first function that has a non-nil result is used for the completion UI.
 We can experiment with completion in a scratch buffer, or in a buffer
 for our `init.el` file. This will let us experiment with elisp code.
 
-# Built-In UI
+## Built-In UI
 
 Bringing up the Emacs completion at point interface for the current buffer
 is invoked by executing the `completion-at-point` interactive function. We

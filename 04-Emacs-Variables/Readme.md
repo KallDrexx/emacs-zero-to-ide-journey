@@ -1,5 +1,21 @@
 # Emacs Variables
 
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [Customization UI](#customization-ui)
+  - [Global Setting Functions](#global-setting-functions)
+    - [Menu bar](#menu-bar)
+    - [Disabling the Scroll Bar](#disabling-the-scroll-bar)
+    - [Fonts](#fonts)
+  - [Buffer Local Settings](#buffer-local-settings)
+    - [Tab Indentation](#tab-indentation)
+    - [Text Wrapping](#text-wrapping)
+  - [Organizing These Settings](#organizing-these-settings)
+    - [Additional Customization Variables](#additional-customization-variables)
+
+<!-- markdown toc end -->
+
 There are quite a few variables built into emacs that controls it's
 behavior. 
 

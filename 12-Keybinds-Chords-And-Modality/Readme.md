@@ -161,7 +161,8 @@ I have not noticed any performance degredations and we'll see how happy I am as 
 more complex Emacs use cases.
 
 That being said, after trying standard Emacs keymaps for the past week or so, it does not necessarily
-feel like a definite win.
+feel like a definite win. As I'm paying active attention to my hand in this process I am realizing
+that I am still using modifier keys more than I realized when running in Vi modes.
 
 ### Meow
 
@@ -288,6 +289,15 @@ the space bar as the leader key. So `SPC x f` is the same as `C-x C-f`.  `SPC m 
 This is an interesting compromise, because it keeps me concious of Emacs bindings while allowing me
 to not have to hold down modifier keys.
 
-Overall, I am really happy with what I've seen of Meow so far.
+Overall I am really happy with what I've seen of Meow so far.
+
+Unfortunately, the core concepts are just different enough from vi to make it require work to get used
+to. Since I do not yet have Emacs working enough as an IDE to be productive, I still need normal
+development environments for my day job. While some IDEs have a "Helix" mode, there seems to be
+differences between them and Moew to make it not trivial.
+
+So I might investigate Meow more when I'm full time on Emacs for personal and work contexts, but it
+does make sense while I am taking my time to explore and getting familiar with Emacs.
+
 
 

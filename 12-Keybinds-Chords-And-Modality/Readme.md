@@ -169,11 +169,13 @@ feel like a definite win.
 minimize how many keys it requires to keep the number of conflicts down. It claims to be fast,
 and utilizes the leader key concept to remove the need for modifier keys.
 
-It changes the motion concepts from Vi in that Vi is `verb -> motion` instead of `motion -> verb`. So
+It changes the motion concepts from Vi in that Vi is `verb -> motion` instead of `selection -> verb`. So
 for example, instead of `dw` to delete the next word. The idea is that unlike in vi, you can see
-what items you are going to operate on before you do so, and thus are less surprised.
+what items you are going to operate on before you do so, and thus are less surprised. This seems
+inspired by concepts from the [Kakoune editor](https://kakoune.org/) and the 
+[Helix editor](https://helix-editor.com/).
 
-I suspect the supposed speed and compatibility comes from the `motion -> verb` maps more simply to
+I suspect the supposed speed and compatibility comes from the `selection -> verb` maps more simply to
 the Emacs system and does not require buffering of past verbs while it waits for the motion.
 
 By default, meow has no keybinds (since the key binds will differ based on keyboard layout). So we
@@ -270,4 +272,22 @@ need to set up the layout for QWERTY keyboards and install the package via
   (meow-global-mode 1))
 ```
 
-Once this is evaluated, meow is up and runn
+Once this is evaluated, meow is up and runnng. Learning meow is best done by running `M-x meow-tutor`.
+
+After going through the tutor I am surprised how intuitive and powerful it is. There are
+a lot of little differences from the vi model that is really compelling to me.
+
+For example, moving multiple words and lines in fewer keystrokes because of the numerics you can use to
+advance. For example `e3` goes to the end of the 3rd word, but then typing `2` goes 2 more
+additional words.
+
+The keypad mode it has effectively turns the existing Emacs bindings into leader based commands with
+the space bar as the leader key. So `SPC x f` is the same as `C-x C-f`.  `SPC m x` is the same as
+`M-x`.  `SPC x SPC f` is the same as `C-x f`.
+
+This is an interesting compromise, because it keeps me concious of Emacs bindings while allowing me
+to not have to hold down modifier keys.
+
+Overall, I am really happy with what I've seen of Meow so far.
+
+

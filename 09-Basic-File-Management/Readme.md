@@ -14,7 +14,7 @@ So far we've used `C-x C-f` (the `find-file` command) to open our `init.el` file
 but that's not the full extent of file management capabilities that Emacs has.
 
 If you just want a quick listing of files in a directory than `C-x C-d` (the `list-files` command)
-can be used.  
+can be used. 
 
 ![list-files output](list-files.png)
 

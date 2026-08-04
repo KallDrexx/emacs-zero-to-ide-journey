@@ -1,5 +1,16 @@
 # Keybinds, Chords, and Modality
 
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [Initial Opinion Of Emacs Defaults](#initial-opinion-of-emacs-defaults)
+  - [What Options Are There?](#what-options-are-there)
+    - [Emacs VI Layer (aka evil)](#emacs-vi-layer-aka-evil)
+    - [Meow](#meow)
+    - [God Mode](#god-mode)
+
+<!-- markdown toc end -->
+
 As someone who has always installed Vim emulation in every editor I have tried to use
 (and refuse to use ones that don't support it)  it's time to tackle the elephant in the
 room: should I stick with Emacs bindings and non-modal editing, set up a Vim emulation layer.
@@ -296,8 +307,126 @@ to. Since I do not yet have Emacs working enough as an IDE to be productive, I s
 development environments for my day job. While some IDEs have a "Helix" mode, there seems to be
 differences between them and Moew to make it not trivial.
 
-So I might investigate Meow more when I'm full time on Emacs for personal and work contexts, but it
-does make sense while I am taking my time to explore and getting familiar with Emacs.
+So I might investigate Meow more when I'm using Emacs full tiem in personal and work contexts, but it
+does not make sense while I am taking my time to explore and getting familiar with Emacs.
 
+### God Mode
 
+[God mode](https://github.com/emacsorphanage/god-mode) is a package that adds modal editing
+capabilities that focuses less on text/cursor movement and selection, and more on using the
+command mode to simplify executing Emacs commands that usually require modifier keys to be held.
+
+Meow's keypad mode is based on the God Mode and uses the same key mappings.
+
+* `x` -> `C-x`
+* `x s` -> `C-x C-s`
+* `x SPC s` -> `C-x s`
+* `x SPC r t` -> `C-x r t` (Space key is sticky)
+* `g x` -> `M-x` (`g` acts as Meta, so there's no way to `C-g` while in god mode)
+* `G x` -> `C-M-x`
+
+This can be activated with the following in your `init.el` file:
+
+```elisp
+(use-package god-mode
+  :ensure t
+  :demand t ;; Otherwise key bind won't load
+  :config
+  (global-set-key (kbd "<escape>") #'god-local-mode)
+  )
+```
+
+Now, when you hit the `ESC` key in a buffer, the mode line shows the `God` minor
+mode being activated: 
+
+![god mode indicator](god-mode-indicator.png)
+
+Now that god mode is activated, I can navigate to previous lines with the `p` key,
+page down with `v`, page up with `g v`, etc..
+
+Since Emacs is heavily customizable, we can make it more noticable if we are currently
+in or out of god-mode:
+
+```elisp
+
+(defun my/god-mode-enabled ()
+    (set-face-attribute 'mode-line nil
+                        :foreground "#604000"
+                        :background "#fff29a")
+    (set-face-attribute 'mode-line-inactive nil
+                        :foreground "#3f3000"
+                        :background "#fff3da")
+    )
+
+(defun my/god-mode-disabled ()
+    (set-face-attribute 'mode-line nil
+			:foreground "#0a0a0a"
+			:background "#d7d7d7")
+    (set-face-attribute 'mode-line-inactive nil
+			:foreground "#404148"
+			:background "#efefef")
+    )
+  
+(use-package god-mode
+  :ensure t
+  :demand t ;; Otherwise key bind won't load
+  :config
+  (global-set-key (kbd "<escape>") #'god-local-mode)
+  (define-key god-local-mode-map (kbd ".") #'repeat)
+
+  :hook
+  (god-mode-enabled . my/god-mode-enabled)
+  (god-mode-disabled . my/god-mode-disabled)
+```
+
+Now when we enter god mode the mode line turns yellow
+
+![God mode on](god-mode-yellow.png)
+
+where as when it is off it becomes white
+
+![God mode off](god-mode-white.png)
+
+If I was going to keep that concept then I'd want to tailor the colors to be a bit less
+drastic and more inline with the theme I'm using, but it's at least a good example of
+the options.
+
+More subtle indicators can be used like changing the cursor depending on what mode you
+are currently in. This sets the cursor to be a vertical bar when in text editing mode
+while a filled in box while in god mode:
+
+```elisp
+(defun my/god-mode-enabled ()
+  (setq cursor-type 'box)
+  )
+
+(defun my/god-mode-disabled ()
+  (setq cursor-type 'bar)
+  )
+```
+
+After playing with the mode for a while I can see its appeal. It (mostly) keeps Emacs functionality
+front and center to your experience. There are two downsides that I see with it so far.
+
+The escape key is the most logical "enter command mode" key, and yet it is hard to reach. Changing
+my caps lock key to escape instead of control is a viable option unless I want to be able to do
+a one off command outside of god mode, and that means going down to the bottom control. I tried
+to get `C-[` to exit/enter god mode but could not do it, it just kept acting as Escape (but not
+the type of escape that would trigger god mode).
+
+The bigger thing for me is that it got confusing dealing with mentally transforming key maps all
+the time. With undo I hit `x` but even though which-key tells me I have to hit `u` next, in reality
+I have to remember that which-key lies and I have to hit `SPC u`. `C-c M-h` (to mark a whole block
+of text in markdown) has to be mapped to `c g h` (again despite which-key telling me something
+different). I just found the constant translation an issue.
+
+I also kept losing key maps randomly, to the extent that Emacs would complain that `M-x` is unbound!
+I suspect I was in god mode accidentally at one point and hit some key combination that caused
+random things to be unbound. This happened twice and each time I had to kill Emacs via my window manager.
+
+So as initially appealing as god-mode is, I don't think it's for me. If I have to mentally transform
+and think about every hotkey I invoke, I might as well use evil with a customized space leader
+combinations. At least then if I forget the exact key I'm looking for which-key will help me out.
+
+### Sticky Keys
 

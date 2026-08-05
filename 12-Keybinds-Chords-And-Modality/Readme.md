@@ -8,6 +8,8 @@
     - [Emacs VI Layer (aka evil)](#emacs-vi-layer-aka-evil)
     - [Meow](#meow)
     - [God Mode](#god-mode)
+    - [Sticky Keys](#sticky-keys)
+  - [End Result](#end-result)
 
 <!-- markdown toc end -->
 
@@ -430,3 +432,104 @@ combinations. At least then if I forget the exact key I'm looking for which-key 
 
 ### Sticky Keys
 
+I haven't really thought about sticky keys in decades, since the one time long ago I pressed shift
+too many times and disabled the popup that came up. So it hadn't really occurred to me now to
+look at them more closely.
+
+For anyone who isn't totally aware, the concept of sticky keys revolves around the idea that if
+you hit a modifier key and release it (without pressing another key), then the OS will consider
+that modifier key pressed (aka latched) until the next non-modifier key is pressed. If you press the modifier
+key twice in a row, it keeps it locked and will apply that modifier until you hit the key again.
+
+So when you want to load a file with `C-x C-f`, you don't have to stretch stretch your pinky out
+the whole time, but can instead bounce around to do `Ctrl -> x -> Ctrl -> f`. You can also do
+`Ctrl -> Ctrl -> x -> f -> Ctrl`. It has more obvious benefits when you want to go forward
+4 words, instead of `M-f M-f M-f M-f` you can then do `Meta -> Meta -> f -> f -> f -> f -> Meta`. 
+If you went too far you can then go backwards a word by `b` before the last `Meta`. 
+
+This solves one of the biggest issues I've seen with the modal editing of previous modes. You
+are always in editing mode until you start a sequence of keys for a shortcut, and you are
+back in editing mode once your single command is gone, unless you have explicitely locked
+one of the modifier keys. 
+
+I feel like there is much less confusion on if I press a
+character if it's going to insert that character or execute/prefix a command.
+
+Sticky keys essentially gives me two leader keys (Control and Meta) that don't require me to be
+in a specific "mode" to utilize them.
+
+The modifier keys are much easier to hit when I don't have to hold them down with another
+key, especially with caps lock mapepd to control.
+
+I am also able to better ease into tapping modifier keys instead of holding them. With sticky keys,
+you can still do Mod+key combinations and the modifier becomes inactive once you release it (as long
+as you pressed one non-modifier key while holding it). So I can start off doing `C-n` to navigate
+my document and slowly work towards getting my habit to be `C n` instead.
+
+I do sometimes accidentally end up in a state where I accidentally locked a modifier when I didn't
+intend to. I feel like that happens less than I was being in the wrong modality in the other modes
+though, and having visual indicators helps.
+
+On Mac (what I use for work), sticky keys is really easy activate. It also puts a visual indicator
+in one of the corners of the screen so you are always aware what modifiers are latched and which
+are locked at any given time.
+
+Linux (what my personal machines are) are not nearly as trivial to setup. I had to use the following
+configuration to setup my xkb keymap file to support sticky modifiers:
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+DST=$HOME/.config
+
+# Reset keyboard layout (to your preferred language), remap Caps Lock to Control
+setxkbmap us -option ctrl:nocaps
+
+# Apply locked modifiers, then rewire LED indicators to track different modifiers
+# Sway doesn't support locked modifiers, so super shouldn't lock, only latch
+xkbcomp $DISPLAY -xkb - | \
+    sed 's|SetMods|LatchMods|g' | \
+    perl -pe 's/LatchMods\(([^)]*)\)/
+        $1 =~ \/latchToLock\/ ? "LatchMods($1)" : "LatchMods($1,latchToLock)"
+    /ge' | \
+    perl -0777 -pe '
+        # Keep Super as latch-only: strip latchToLock back out of its interpret blocks
+        s/(interpret\s+Super_[LR]\+\w+\([^)]*\)\s*\{[^}]*?action=\s*LatchMods\([^)]*?),latchToLock(\))/$1$2/gs;
+    ' | \
+    perl -0777 -pe '
+        s/indicator\s+"Caps Lock"\s*\{[^}]*\};/indicator "Caps Lock" {\n\twhichModState= latched+locked;\n\tmodifiers= Control;\n    };/s;
+        s/indicator\s+"Num Lock"\s*\{[^}]*\};/indicator "Num Lock" {\n\twhichModState= latched+locked;\n\tmodifiers= Mod1;\n    };/s;
+        s/indicator\s+"Scroll Lock"\s*\{[^}]*\};/indicator "Scroll Lock" {\n\twhichModState= latched+locked;\n\tmodifiers= Shift;\n    };/s;
+        if (!/indicator\s+"Fn Lock"/) {
+            s/(indicator "Scroll Lock" \{\n\twhichModState= locked;\n\tmodifiers= Shift;\n    \};)/$1\n    indicator "Fn Lock" {\n\twhichModState= latched;\n\tmodifiers= Mod4;\n    };/s;
+        }
+    ' > \
+        $DST/keymap_with_locked_modifiers.xkb
+```
+
+This also maps my keyboard's caps lock indicator light to be on when control is latched/locked,
+num lock when alt is latched/locked, and scroll lock when shift is latched/locked.
+
+Since I use sway as my window manager, I created a script to show control, alt, and shift indicators
+on my waybar (top status bar) so I can clearly see when one of them is latched or locked.
+
+## End Result
+
+After trying all these options, I'm going to stick with sticky keys (no pun intended).
+
+It's much less cognitative load for getting started, because I can rely on knowledge of native
+Emacs bindings to know how to achieve operations. 
+
+I can use `describe-key` to find out what a key does, or `describe-function` to see what bindings 
+the function is and know for sure that's what it is bound to (evil has this issue).
+
+I don't have to mentally convert Emacs bindings to slightly different letters (god mode and meow keymap require this).
+
+I can ease into more ergonomic hand positions (by not holding the keys down all the time) as I start
+feeling comfortable with it.
+
+It also has the benefit of being OS wide, so I can now paste into my terminal without holding 2 modifiers
+plus another key.
+
+I am really happy with how it's working out for me so far.

@@ -223,3 +223,17 @@ I have also added the following to my `init.el`:
 
 This adds Treemacs icons to the dired interface. Treemacs has a different purpose
 for me than dired, and I can see both will being used in normal Emacs life.
+
+## Addendum
+
+While I initially liked Treemacs, the more I use Emacs the more I find that 90%
+of my use cases are better solved with `project-find-file` (the project
+oriented `C-x C-f`) due to it allowing quick searches by file name (I'll get into
+what projects are in a later post). 
+
+Even using`dired` sometimes ends up being more convienient for general browsing, 
+that I find myself sometimes reaching for it instead of `treemacs`.
+
+Treemacs comes in handy in some cases, but for me the biggest day-to-day boon I 
+got from installing it was its icon pack for `dired`.
+

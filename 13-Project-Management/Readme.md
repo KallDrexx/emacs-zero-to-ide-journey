@@ -127,7 +127,7 @@ to the `:custom` section of the `use-package emacs` declaration:
 ```elisp
 (project-vc-extra-root-markers '(".project" "package.json" "Cargo.toml"))
 ```
-
+    
 This allows me to create an empty file in any directory called `.project` and that will be recognized
 as a project. For example, I added that to my `~/.emacs.d/` folder and now I can consider my emacs config
 directory a project I can switch in and out of, despite the folder itself not being managed by git.
@@ -138,8 +138,8 @@ description will consider each rust crate it's own project, and you won't be abl
 project with all the rust crates inside of it. 
 
 I have not yet determined if this is a big issue or not, since switching projects seems relatively easy. I
-can see some code bases where this would be ok and others where it would be detrimental, so it will take
-some more experimentation to figure out).
+can see some code bases where this would be ok and others where it would be a pain, so it will take
+some more experimentation to figure out.
 
 More fine-grained control for finding project roots can be done by using `defun` to create a new function
 that and add it to the `project-find-functions` list. So in theory if you want a specific git repository
@@ -150,3 +150,66 @@ sub-projects and only consider the root.
 
 You can switch between projects with `C-x p p`. This opens a list of all known projects. 
 
+![select project](select-project.png)
+
+A project is added only when you open a file that Emacs considers to be in a project and perform a 
+project related (`C-x p`) command on that buffer.
+
+When selecting a project from this menu you get a list of actions you can take on the selected project:
+
+![project actions](project-actions.png)
+
+This makes it easy to either open a file for editing that's specific to that project, or search for something
+in that project to cross reference with the current file you are editing.
+
+## Project Specific Frames
+
+What operating systems call windows Emacs calls a frame, while a window in Emacs is a subdivision of a frame,
+where each window displays a buffer.
+
+Most IDEs maintain a separate operating system window per project, and will open a new instance if you want
+two separate projects opened at the same time. We can mimic this behavior in Emacs by opening a project in
+another frame using `C-x 5 p p`.  This will open the normal `C-x p p` select project minibuffer function
+but once a file is selected that file will be opened in a new Emacs frame (OS window). 
+
+The `C-x 5` prefix is used for functions that operate on frames.
+
+Now you can use your window manager to arrange the emacs frames as desired, efficiently utilize multiple
+monitors, etc.. Each frame can have it's own Emacs window configuration that's independent of each other.
+
+Frames can also be renamed with `M-x set-frame-name` so they can be named for the project they are
+managing.
+
+## Project Specific Tabs
+
+Despite this being the primary way most editors operate, I do not really want to have multiple frames
+active to switch between projects quickly. I do not like the way window switching works on Mac, and
+I cannot easily use Emacs commands to easily switch and navigate frames (at least not in the Sway
+window manager).
+
+For me I want a single Emacs frame where I can manage multiple projects. Emacs actually has a tab bar that
+is hidden by default (while there is only one tab) that we can use in this manner. Tab management is
+under the `C-x t` prefix. So just as we did with frames, we can use `C-x t p p` to select a project
+and open that project's file in a new tab.
+
+![project tabs](tabs.png)
+
+`C-x t r` can be used to rename the current tab, so you can have each tab named distinctly to make it
+obvious what project that tab is dedicated to. I can quickly switch tabs with `C-x t o` or `C-TAB`. 
+
+You can also switch between tabs by name with `C-x t <RET>`. 
+
+## Saving Frame / Tab Configurations
+
+Each tab can have it's own window configuration. If you usually work with the same projects on regular
+basis you may find it annoying to have to recreate the tabs and window configurations every time you
+start Emacs. 
+
+You can manually save your configuration via `M-x desktop-save`. This will save the current frame,
+windows, tabs, and buffers. This means you can have different configurations and as required swap between
+them. You can also add `(desktop-save-mode 1)` to the `use-package emacs`'s `:config` section
+to have it always save the desktop when you exit emacs and load it (so you start right where you
+left off).
+
+I will need to investigate it further to figure out the right workflow that works for in regards to maintain
+tab and window configurations, as I have seen some hints there might be a better solution.

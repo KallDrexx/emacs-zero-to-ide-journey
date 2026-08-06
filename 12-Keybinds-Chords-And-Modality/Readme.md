@@ -514,6 +514,10 @@ num lock when alt is latched/locked, and scroll lock when shift is latched/locke
 Since I use sway as my window manager, I created a script to show control, alt, and shift indicators
 on my waybar (top status bar) so I can clearly see when one of them is latched or locked.
 
+The one disadvantage of sticky keys is holding down control and scrolling the mouse is keeps the latch,
+because the scroll wheel isn't considered a key press. So that will some times leave control latched
+after increasing/decreasing font text with the mouse.
+
 ## End Result
 
 After trying all these options, I'm going to stick with sticky keys (no pun intended).

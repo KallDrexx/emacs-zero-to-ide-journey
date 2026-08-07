@@ -223,3 +223,45 @@ configuration file, as they are defaults that make sense for me.
 
 Don't forget to save and use `M-x eval-buffer` to make them take effect!
 
+## Mac Specific Settings
+
+Emacs knows what operating system it is running on, and it can be queried via the `system-type` variable.
+
+This is useful in your configuration if you want settings that only take effect when run on a specific setting. 
+For Mac OS, there are two specific oddities that I work around:
+
+1. Emacs defaults to the `M` (Meta) key being the Option key, while on Linux and Windows it's the alt key.
+   This means if you switch between Mac and PCs you have to switch out which key you hit for Meta based on
+   what computer you are at. I also just prefer the placement of Mac's command key over option since Meta
+   is used a good amount.
+2. Mac's high DPI settings tends to make fonts appear smaller than they do on most PCs, even with
+   the same monitor and resolution.
+
+To address these, I have my `use-package emacs`'s `:init` section have the following:
+
+```elisp
+  ;; Mac specific settings
+  (when (eq system-type 'darwin)
+    (setq mac-command-modifier 'meta) ;; set command key to act as meta
+    (set-face-attribute 'default nil :family "JetBrainsMono Nerd Font" :height 125)
+    )
+```
+
+Your desired font height may be different, but I have 100 height on PC but 125 on Mac.
+
+## Default Frame Size
+
+When a new Emacs frame opens (even the initial one), it tends to open in a small window. On my
+Linux desktop this isn't a big deal due to using a tiling window manager, but on Mac it opens in
+the tiniest window by default.  
+
+I have expanded my default with the following in my `(use-package emacs` `::init` section:
+
+```elisp
+  ;; Make sure frames open with a reasonable initial size
+  (add-to-list 'default-frame-alist '(width . 120))
+  (add-to-list 'default-frame-alist '(height . 45))
+```
+
+The values specified are in rows vs columns for text. I'm not sure how that calculates if you aren't
+using a mono-spaced font though.

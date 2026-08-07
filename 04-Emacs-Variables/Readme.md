@@ -13,6 +13,8 @@
     - [Text Wrapping](#text-wrapping)
   - [Organizing These Settings](#organizing-these-settings)
     - [Additional Customization Variables](#additional-customization-variables)
+  - [Mac Specific Settings](#mac-specific-settings)
+  - [Default Frame Size](#default-frame-size)
 
 <!-- markdown toc end -->
 

@@ -1,5 +1,15 @@
 # Syntax Highlighting
 
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [Standard Programming Major Modes](#standard-programming-major-modes)
+  - [Tree-sitter](#tree-sitter)
+  - [Tree Sitter Navigation](#tree-sitter-navigation)
+
+<!-- markdown toc end -->
+
+
 We have seen how editing elisp code provides syntax highlighting, but what about other languages?
 
 Opening up a C++ file presents me with:
@@ -117,9 +127,20 @@ If we then navigate to the C++ example:
 
 ![C++ Improved](cpp-improved.png)
 
-While it doesn't make the whole string literal "green", it did recognize that the
-code inside the string literal is not actual code. More importantly, commands
-like `M-x end-of-defun` now work properly for code navigation.
+Unlike the C# mode, the C++ tree-sitter mode makes the string literal just white and you can see
+that it recognizes the code inside tring literal as plain text and not code. If you type
+`M-x end-of-defun` you'll notice it acts correctly and doesn't get tripped up due to the string literal.
+
+In fact, we can see that if we have the same bug as before with the missing quote it becomes much more obvious:
+
+![missing quote](cpp-missing-quote.png)
+
+We can see that now the rest of the file is white and has no highlighting, because the unclosed string literal
+means that the tree-sitter mode is correctly realizing that the rest of the code is part of the string literal.
+This can be extremely helpful in finding real bugs and not waiting for the compiler to hopefully give a clear
+message on why things are not as you expect.
+
+## Tree Sitter Navigation
 
 This also unlocks some smarter functionality too due to Emacs being AST aware. For example,
 if you put the point on the `int` in `int main` and do `C-M-SPC`, it knows you want to select

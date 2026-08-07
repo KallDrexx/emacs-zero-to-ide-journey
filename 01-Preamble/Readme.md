@@ -1,5 +1,14 @@
 # Preamble
 
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [Why DE-IDE](#why-de-ide)
+  - [Why Not Neovim?](#why-not-neovim)
+  - [Why Vanilla Emacs](#why-vanilla-emacs)
+
+<!-- markdown toc end -->
+
 This post reflects on the personal motivations for going on this Emacs journey, and why
 this document even exists. It's mostly designed around giving some optional context to
 the framing of the articles that will follow. 

@@ -1,0 +1,194 @@
+# LSP Support + Eglot
+
+While tree-sitter works great for parsing the code into an AST to provide highlighting
+and basic navigation, it doesn't actually understand the code. It knows that your code
+has the correct grammar but it doesn't know that you are referring to a variable
+that doesn't exist, or if a function you are calling has the correct visibility, etc...
+
+Thus we need something more to provide IDE like capabilities to Emacs.
+
+## What Are Language Servers
+
+Language servers are independent programs designed to provide semantic understanding 
+and advanced editing capabilities for programming languages. They can provide
+diagnostic messages, cross referencing to locate related code, provide smart
+completion options, refactoring utilities, etc...
+
+Since each language server tends to specialize in one specific programming language,
+it knows the actual semantic meaning of the code and how it relates to other code
+and packages being referenced.
+
+As the name implies, each language server acts as an independent process outside of
+the client which is utilizing it. This means that any editor can use the same
+language server.
+
+LSPs unlock a significant amount of power for code-editing, and is critical for me
+to act as a usable development environment.
+
+The Language Server Protocol (LSP) is the standard interface for editors to communicate
+and interact with language servers. 
+
+So our goal here is to set Emacs up as an LSP client, so that it can automatically invoke
+functionality from the correct language server at the right time.
+
+## Language Server Installation
+
+Editors act as clients for the language servers. Some editors may helpfully install
+language servers themselves but ultimately they are third-party servers.
+
+Most LSP-integration packages in Emacs will assume you have the language servers
+installed already, instead of installing them for you. Each language has its
+own (and sometimes multiple exist for the same languages). 
+
+For my personal use case, these are the language servers I have installed and the
+installation instructions I use for them:
+
+* bash - `pnpm i -g bash-language server`
+* C++ - `clangd` installed via brew or system package manager
+* C# - `dotnet tool install --global roslyn-langauge-server --prerelease`
+* CMake - `pipx install cmake-language-server`
+* docker - `pnpm i -g dockerfile-language-server-nodejs`
+* docker compose - `pnpm i -g @microsoft/compose-language-service`
+* F# - `dotnet tool install --global fsautocomplete`
+* fish shell - `pnpm i -g fish-lsp`
+* Lua - `lua-language-server` installed via brew or system package manager
+* PytEhon - `pipx install pyright`
+* typescript - `pnpm i -g typescript typescript-language-server`
+* Verilog - `Verible` manually installed [from Github](https://github.com/chipsalliance/verible)
+
+## Eglot
+
+[Eglot](https://elpa.gnu.org/devel/doc/eglot.html) is the LSP client integration that's natively
+built into Emacs. 
+
+Using Eglot is actually easy. Since I already had `clangd` installed I was able to go to my 
+`main.cpp` file, run `M-x eglot` and saw the following message:
+
+![eglot active](eglot-activated.png)
+
+Now that Eglot is activated, it will communicate with the clangd process it established a connection with
+to provide LSP-based enhancements to the buffer. It will use the existing connection any time I open a
+new buffer for a file whose mode is one that it is managed. However Eglot is project based, which means
+it will not activate if I open a C++ file outside of the current project. Each project will need it's own
+invocation of `M-x eglot`.
+
+Eglot being activated has also enhanced the view of our editor in a number of helpful ways:
+
+![Eglot helping](eglot-eldoc.png)
+
+All function calls now have non-obvious arguments prefixed with the name of the parameter. So we can clearly
+see that the string I'm passing into `SDL_CreateWindow()`'s first argument is for the `title` parameter.
+
+I also have the point over one of the arguments into the `SDL_CreateWindow` function. At the bottom of the
+screen, the `ElDoc` minor mode is now receiving information from the language server to tell me the signature
+of the function, it is bolding the parameter relevant to where the point is currently at, and shows me
+that the `SDL_WINDOW_SHOWN` is an enum type. 
+
+### Xref
+
+Xref is a framework built into Emacs and takes an identifier (be it a function, macro, variable, etc...) and
+find where that identifier is defined and referenced. Xref is just a frontend for actually picking and
+navigating cross references and Eglot is one such backend for it. We used the xref system previously when
+doing regular expression searches within a project earlier.
+
+We can utilize Eglot and the language server's xref capabilities by invoking `xref-find-definitions`, bound
+to `M-.` by default. Emacs will then immediately go to where the symbol under the point is defined.
+
+![Go to definition](go-to-definition.png)
+
+In this case, clangd knows where all my includes are and which include is relevant for the
+`SDL_Window_SHOWN` enumeration. 
+
+By invoking the `xref-go-back` command (bound to `M-,`) we will be brought right back to where we were
+before we performed the find definition call.  The xref system will maintain a stack of navigations, and no matter
+how many times you `M-.` into something you can always `M-,` back.
+
+We can use `xref-find-references` (bound to `M-?`) to open an xref window that shows us all known references
+clangd has for what we had under the pointer. 
+
+![xref references](xref-references.png)
+
+We can navigate these options with `n` and `p` (no control modifier needed) and the non-xref window will automatically
+update and load the file at that specific point. This provides us a very quick way to navigate references within
+our projects. `M-,` will bring us right back to where we were before the xref request.
+
+I need to do a deep dive to figure out what `apropos` is in Emacs, but there is an `xref-find-apropos` function,
+which allows you to specify an arbitrary symbol name and get xref results for them. For example, searching for
+`pixels` brings up the following:
+
+![xref apropos](xref-apropos.png)
+
+At first test with this, this seems extremely useful. The search is case insensitive and it uses a fuzzy search.
+
+### Eldoc
+
+What if we want additional documentation for what's under the point? 
+
+Eldoc is Emac's at-point documentation system. It provides a mechanism to show documentation based on
+what symbol is underneath the point at any given time and is fully compatible with Eglot.
+
+The Eldoc function doesn't just populate basic information in the minibuffer area, it also has it's own
+buffer with more comprehensive documentation fed by the language server. This can be opened by typing `C-h .`.
+
+![eldoc buffer](eglot-eldoc2.png)
+
+Obviously this is cramped because I have my Emacs frame small for demonstration purposes, but there is
+adaquate space if you are running Emacs full screen. Without changing changing focus you can scroll
+the Eldoc window up and down with `C-M-v` and `C-M-S-v` while maintaining the code as your current
+buffer. 
+
+The power of Emacs windowing really comes into play here. If you don't want the window below
+but want it to the right, you can do:
+
+* `C-x 1` to maximize the current code window
+* `C-x 3` to split the current window to the right
+* `C-x 4 b` to switch the other window's buffer to `*eldoc*`.
+
+Now the documentation is on the right side of the screen, and as you move the cursor around to different
+parts of the code the documentation window automatically updates. 
+
+![eldoc to the right](eglot-eldoc-right.png)
+
+You can also do `C-x 5 b` to open the `*eldoc*` buffer in a new Emacs frame, allowing you to place it on a 
+completely different monitor.
+
+### Imenu
+
+Emacs has a function called `imenu` (bound to `M-g i`) which provides a minibuffer completion menu of top level symbols in the
+current buffer that can be navigateid to. So if you are in a file that contains a lot of functions and you
+know a keyword from the function you want to navigate to, the imenu is a quick way to jump right to it.
+
+This is quick because it's only root level symbols for the current file and thus doesn't need to look
+through the entire project. 
+
+### Flymake
+
+Flymake is the on the fly diagnostic annotation system. Eglot adds its own backend to surface
+language server diagnostics through flymake. If we type `window` in the line after
+our window `nullptr` check we get the following
+
+![flymake annotations](flymake-annotations.png)
+
+We can now see the `window` we typed has a yellow squigly and an exclamation mark, while
+the next line's `SDL_Renderer` clause has a red squiggly and two red exclamation marks. We
+can also see the Flymake entry in the mode line shows 1 warning and 1 error.
+
+Flymake messages get surfaced in Eldoc, so if we still have the window split we can see
+the errors from our language server right there.
+
+![flymake in eldoc](flymake-in-eldoc.png)
+
+We don't have to manually go to the error to see it though. We can use the
+`M-x flymake-goto-next-error` and `flymake-goto-prev-error` to navigate
+between them.
+
+We can then fully utilize the language server by running
+`M-x flymake-show-buffer-diagnostics` to see a list of diagnostic messages for the
+current buffer or `M-x flymake-show-project-diagnostics` to show all diagnostics
+for the whole project. 
+
+These will open a window with a list of diagnostics, what file they exist in,
+and allow `n` and `p` navigation. While navigating the diagnostic messages you can use `SPC`
+to have the main window show the code that the diagnostic message is for, and `RET` to actually focus
+the code buffer at the point of the diagnostic.
+

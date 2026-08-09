@@ -152,6 +152,23 @@ every time `icomplete` is invoked, it resets the completion styles. So we need t
 make sure that our function with sets the `completion-styles` variable is invoked
 after `icomplete` is set up.
 
+One issue that may become apparent is that now you can type `ev<SPC>buff` to find
+`eval-buffer` but not `evbuff`, which we could before. We can address this by adding
+the following to the orderless `:custom` section:
+
+```elisp
+(orderless-matching-styles '(orderless-literal orderless-regexp orderless-flex))
+```
+
+This means the following matching behavior will occur for `eval-buffer`:
+* `evbuff` will match
+* `ev buff` will match
+* `buff ev` will match
+* `buffev` will *NOT* match
+
+So if you know the order of the words then not including the spaces can help, but 
+if you don't know the order than space between the sections is needed to search.
+
 ## Minibuffer Word Wrapping
 
 With marginalia activated and an Emacs window of limited width, it is possible to

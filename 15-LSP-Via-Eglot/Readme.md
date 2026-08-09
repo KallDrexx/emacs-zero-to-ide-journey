@@ -11,7 +11,11 @@
   - [Flymake](#flymake)
   - [Completion At Point](#completion-at-point)
   - [Code Actions](#code-actions)
-  - [Other Languages (Where Problems Begin)](#other-languages-where-problems-begin)
+  - [Other Languages](#other-languages)
+    - [C#](#c)
+    - [Typescript](#typescript)
+    - [Verilog](#verilog)
+  - [Conclusion](#conclusion)
 
 <!-- markdown toc end -->
 
@@ -261,14 +265,18 @@ the region that has been selected.
 `M-x eglot-format-buffer` will reformat/indent the whole file, while `M-x eglot-format` will format
 the selected region.
 
-## Other Languages (Where Problems Begin)
+## Other Languages
 
 So C++ was pretty easy. C++ is pretty common (from the perspective of non-IDE editors)
 and clangd seems to be the most common C++ language server. It is also installed with
 clangd, which is a very common toolchain for C++ development.
 
-So let's open up something a bit different. If we open up a C# file and `M-x eglot`
-we get:
+So let's try some other languages. Unfortunately, this is where things started breaking
+down for me.
+
+### C#
+
+If we open up a C# file and `M-x eglot` we get:
 
 > [eglot] Couldn't guess LSP server for 'csharp-ts-mode'
 > Enter program to execute (or <host>:<port>)
@@ -315,6 +323,62 @@ current Emacs build.
 I tried installing the ELPA official package for elgot whose 1.24 version was released
 back in July 2026, but it didn't work either (the error messages looked a bit different
 but were all glob related still).
+
+### Typescript
+
+While I work on Node and Typescript projects at work, I don't do much in my personal time.
+So I downloaded some Typescript examples just to see how they worked.
+
+So I downloaded an open source typescript tetris game from Github, opened up the `app.ts` 
+file and loaded eglot. Eglot immediately fails with an error about not finding a Typescript
+environment. I definitely have both `tsc` and `typescript-language-server` available in my `$PATH`
+so I'm not sure what to make of that. 
+
+This error came from the language server and not Eglot, and is just a quirk on typescript, where
+you need to run `pnpm install` so that it has a `node_modules` folder with its own typescript
+environment. I code in Typescript as part of my day job but I don't manage the infrastructure around
+it so this is definitely a me mistake.
+
+What is an Emacs/Eglot quirk (at least for newbies like me) is that the error shows in the minibuffer
+and goes away pretty quickly. The Eglot event buffer just showed an initialization request sent
+and nothing after that. The `M-x eglot-stderr-buffer` command seemed to only show me a message
+in the minibuffer of "No current JSON-RPC" connection and thats it. I did eventually find the 
+typescript environment error in the `*Messages*` buffer and it at least showing that Eglot exited
+with that error. 
+
+I should check the `*Messages*` buffer more often, but it also has no timestamping or easy way to
+correlate when and how a message was received, so it can be hard to parse.
+
+Either way, fixing that issue now has the typescript language server integration fully up and
+running!
+
+![typescript working](ts-working.png)
+
+
+### Verilog
+
+Opening up a verilog file and running `M-x eglot` shows the "Couldn't guess LSP server"
+prompt. So I enter `verible-verilog-ls` and eglot shows
+
+> 'Verible Verilog language server.' now managing 'nil' buffers in project
+
+Thats... interesting. Typing `M-.` to go to definition asks me
+`Visit tags table (default TAGS)` which I have no idea what it means. Selecting an option
+removes all highlighting as it puts it into TAGS major mode. Going back to `verilog-mode`
+ends up bringing highlighting back but with a read-only buffer.
+
+Even after refreshing eglot, `M-?` gives me `Sole Completion` responses on everything. I can
+not find an events buffer for the verilog mode, nor did the `stderr` for eglot show anything
+useful. Unfortunately, that left me stuck at this point.
+
+At some point later I did find an events buffer for this specific sesion, and all I can
+figure out is that Eglot gets stuck after sending `workspace/didChangeConfiguration`, and
+then eventually the verible process ends. This language server did work with my Neovim
+setup, so, I don't think that's it.
+
+I can also verify that the `M-?` and `M-.` commands are not triggering eglot events in this buffer.
+
+## Conclusion
 
 Eglot is not the only language server support in town, so maybe we'll have an easier time
 with another one.

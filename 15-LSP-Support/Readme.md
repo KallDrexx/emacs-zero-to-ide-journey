@@ -1,4 +1,19 @@
 # LSP Support + Eglot
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [What Are Language Servers](#what-are-language-servers)
+  - [Language Server Installation](#language-server-installation)
+  - [What Is Eglot](#what-is-eglot)
+  - [Xref](#xref)
+  - [Eldoc](#eldoc)
+  - [Imenu](#imenu)
+  - [Flymake](#flymake)
+  - [Completion At Point](#completion-at-point)
+  - [Code Actions](#code-actions)
+  - [Other Languages (Where Problems Begin)](#other-languages-where-problems-begin)
+
+<!-- markdown toc end -->
 
 While tree-sitter works great for parsing the code into an AST to provide highlighting
 and basic navigation, it doesn't actually understand the code. It knows that your code
@@ -56,7 +71,7 @@ installation instructions I use for them:
 * typescript - `pnpm i -g typescript typescript-language-server`
 * Verilog - `Verible` manually installed [from Github](https://github.com/chipsalliance/verible)
 
-## Eglot
+## What Is Eglot
 
 [Eglot](https://elpa.gnu.org/devel/doc/eglot.html) is the LSP client integration that's natively
 built into Emacs. 
@@ -77,14 +92,16 @@ Eglot being activated has also enhanced the view of our editor in a number of he
 ![Eglot helping](eglot-eldoc.png)
 
 All function calls now have non-obvious arguments prefixed with the name of the parameter. So we can clearly
-see that the string I'm passing into `SDL_CreateWindow()`'s first argument is for the `title` parameter.
+see that the string I'm passing into `SDL_CreateWindow()`'s first argument is for the `title` parameter. 
+If you don't like these, they can be toggled with `M-x eglot-inlay-hints-mode`. You can also bind
+`eglot-momentary-inlay-hints` to allow you to see them only when you hold down a specific key.
 
 I also have the point over one of the arguments into the `SDL_CreateWindow` function. At the bottom of the
 screen, the `ElDoc` minor mode is now receiving information from the language server to tell me the signature
 of the function, it is bolding the parameter relevant to where the point is currently at, and shows me
 that the `SDL_WINDOW_SHOWN` is an enum type. 
 
-### Xref
+## Xref
 
 Xref is a framework built into Emacs and takes an identifier (be it a function, macro, variable, etc...) and
 find where that identifier is defined and referenced. Xref is just a frontend for actually picking and
@@ -120,7 +137,7 @@ which allows you to specify an arbitrary symbol name and get xref results for th
 
 At first test with this, this seems extremely useful. The search is case insensitive and it uses a fuzzy search.
 
-### Eldoc
+## Eldoc
 
 What if we want additional documentation for what's under the point? 
 
@@ -152,7 +169,7 @@ parts of the code the documentation window automatically updates.
 You can also do `C-x 5 b` to open the `*eldoc*` buffer in a new Emacs frame, allowing you to place it on a 
 completely different monitor.
 
-### Imenu
+## Imenu
 
 Emacs has a function called `imenu` (bound to `M-g i`) which provides a minibuffer completion menu of top level symbols in the
 current buffer that can be navigateid to. So if you are in a file that contains a lot of functions and you
@@ -161,7 +178,7 @@ know a keyword from the function you want to navigate to, the imenu is a quick w
 This is quick because it's only root level symbols for the current file and thus doesn't need to look
 through the entire project. 
 
-### Flymake
+## Flymake
 
 Flymake is the on the fly diagnostic annotation system. Eglot adds its own backend to surface
 language server diagnostics through flymake. If we type `window` in the line after
@@ -192,3 +209,112 @@ and allow `n` and `p` navigation. While navigating the diagnostic messages you c
 to have the main window show the code that the diagnostic message is for, and `RET` to actually focus
 the code buffer at the point of the diagnostic.
 
+## Completion At Point
+
+Since we added the corfu package for in-buffer completion popups, we can get auto-complete
+style code completion that's supported by the language server. So typing `win<TAB>` produces
+the popup. While the popup is active we can use `C-n` and `C-p` to cycle through the options,
+and as we select hte options we also get a side popup with documentation for the selected
+option:
+
+![code completion example](code-completion.png)
+
+One interesting note is that as you select options, what you currently typed shows a preview
+of the selected option **with the full signature**. Obviously, that would not be ideal
+in practice because you would have to go back and replace the arguments with your own.
+
+Luckily, you don't have to as once you select and option and press `TAB` or `RET` it will
+not include any of the arguments or even the parenthesis for functions.
+
+One thing that tripped me up a few times is that if you type `window` and hit `TAB` it almost
+seems like nothing is happening. However if you look closely at the bottom you will see 
+`sole match`, so it recognizes that it's at the end of the only option that it could be.
+
+It may be desirable to expand the max width in corfu so that you can see more, if desired.
+
+## Code Actions
+
+Language servers expose refactoring capabilities, and Eglot exposes those.
+
+If we put the point on `window` and do `M-x eglot-rename`, we can now rename the `window`
+variable to anything and it will be renamed only for that logical symbol, even if
+other functions in the same file have their own `window` local. Of course using
+undo `C-/` undoes the whole rename.
+
+There are a variety of code actions that the language server may expose based on what
+code the point is at. The code actions available depend on the language server involved.
+
+So if you put your point over a warning or error flymake indicator and perform 
+`M-x eglot-code-actions` you'll get a list of actions the language server allows for that
+specific spot in the code. 
+
+There are more specific actions that can be performed:
+* `eglot-code-action-organilze-imports`
+* `eglot-code-action-quickfix`
+* `eglot-code-action-extract` 
+* `eglot-code-action-inline`
+* `eglot-code-action-rewrite`
+
+All of these require support by the language server at the spot the point is currently at, or
+the region that has been selected.
+
+`M-x eglot-format-buffer` will reformat/indent the whole file, while `M-x eglot-format` will format
+the selected region.
+
+## Other Languages (Where Problems Begin)
+
+So C++ was pretty easy. C++ is pretty common (from the perspective of non-IDE editors)
+and clangd seems to be the most common C++ language server. It is also installed with
+clangd, which is a very common toolchain for C++ development.
+
+So let's open up something a bit different. If we open up a C# file and `M-x eglot`
+we get:
+
+> [eglot] Couldn't guess LSP server for 'csharp-ts-mode'
+> Enter program to execute (or <host>:<port>)
+
+So I type `roslyn-language-server` which is the C# language server that seems to be
+officially supported and ....
+
+> error in process sentinel: [eglot] -1: Server died
+
+Well that isn't very helpful. Lets open an "other" window with the relevant
+eglot events buffer:
+
+![buffer search](eglot-events-buffer1.png)
+
+Make sure to select the right one if you Emacs session has multiple projects
+open at the moment. Opening it then shows the event buffer:
+
+![events buffer](eglot-events-buffer2.png)
+
+So the events buffer shows that the server is throwing an exception immediately
+because it's expecting an `--stdio` or `--pipe` option. Ok sure, so lets go back
+to our C# buffer and when prompted for the language server program to execute
+lets do `roslyn-language-server --stdio`.
+
+This appears to work at a first glance (eglot claims it's running on the project)
+but we quickly find out it's extremely limited. It seems to be working for
+xref and other operations only within the file itself and not in the larger
+project. I pulled up the eglot events and found a bunch of `Internal Error`
+messages from the client side (not from the language server!). 
+
+So I ran `M-: (setq debug-on-error t)` (the `M-:` allows evaluating arbitrary
+elips expressions ad-hoc), then `M-x eglot-reconnect`. This popped up a buffer
+with a lisp error on `eglot--glob-parse`. 
+
+To try and not get into the weeds, the
+[LSP 3.17 specification](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#globPattern)
+added the ability for glob patterns to be either single pattern strings, or a `RelativePattern`
+object (with a baseUrl and pattern properties). Unfortunately, it seems like eglot's 
+glob parsing code only supports pattern strings, not objects. This appears to have been
+fixed in [a commit back in December 2025](https://lists.nongnu.org/archive/html/emacs-diffs/2025-12/msg00219.html)
+but since the current Emacs version of 30.2 was released in August 2025 that fix isn't in my
+current Emacs build.
+
+I tried installing the ELPA official package for elgot whose 1.24 version was released
+back in July 2026, but it didn't work either (the error messages looked a bit different
+but were all glob related still).
+
+Eglot is not the only language server support in town, so maybe we'll have an easier time
+with another one.

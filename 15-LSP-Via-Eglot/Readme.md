@@ -1,4 +1,4 @@
-# LSP Support + Eglot
+# LSP Support Via Eglot
 <!-- markdown toc start -->
 **Table of Contents**
 

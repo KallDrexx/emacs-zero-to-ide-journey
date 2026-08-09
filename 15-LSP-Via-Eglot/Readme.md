@@ -318,3 +318,7 @@ but were all glob related still).
 
 Eglot is not the only language server support in town, so maybe we'll have an easier time
 with another one.
+
+I want to stress that this was not wasted effort though. Eglot and it's docs taught me
+a lot about xref, imenu, and other Emac native systems that will be relevant to other
+packages.

@@ -167,9 +167,14 @@ This means the following matching behavior will occur for `eval-buffer`:
 * `buffev` will *NOT* match
 
 So if you know the order of the words then not including the spaces can help, but 
-if you don't know the order than space between the sections is needed to search.
+if you don't know the order than space between the sections is needed to search. That being said
+I leave the `orderless-flex` removed from the completion styles and just get in the habit 
+of using space to separate potential words. The problem with the `orderless-flex` is that
+its too flexible, and makes it really hard to find the expected match when filtering down
+a large list of matches (such as all files within a project). It rarely gives me what I want
+in those cases, and thus I can find what I am looking for faster without it.
 
-## Minibuffer Word Wrapping
+# Minibuffer Word Wrapping
 
 With marginalia activated and an Emacs window of limited width, it is possible to
 have minibuffer completion options to be word wrapped. This has the unfortunate

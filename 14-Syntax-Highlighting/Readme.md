@@ -6,6 +6,7 @@
   - [Standard Programming Major Modes](#standard-programming-major-modes)
   - [Tree-sitter](#tree-sitter)
   - [Tree Sitter Navigation](#tree-sitter-navigation)
+  - [Ensuring Proper Configuration](#ensuring-proper-configuration)
 
 <!-- markdown toc end -->
 
@@ -103,6 +104,7 @@ Adding the following to `init.el` makes live much easier:
 
 ```elisp
 (use-package treesit-auto
+  :ensure t
   :custom
   (treesit-auto-install 'prompt)
   :config
@@ -174,4 +176,27 @@ Now every time we do `M-x my/treesit-next-if` it will navigate to the next if st
 isn't that useful but it shows how tree-sitter starts to give us the flexibility to really customize
 and take advantage of the AST.
 
+## Ensuring Proper Configuration
 
+The `treesit-auto` package is a great help on setting up grammars. However I have noticed the
+automatic conversion from non-tree sitter major modes to tree sitter modes does not always take
+effect.
+
+You can verify what mode you are in with `M-: major-mode`. If you find that you are not
+in a tree sitter mode when you expect to be, there are two things to do.
+
+The first is to ensure the tree sitter grammars are installed via `M-x treesit-auto-install-all`.
+
+Then you can add the following to the end of your `init.el`:
+
+```elisp
+(setq major-mode-remap-alist
+      '((c-mode           . c-ts-mode)
+        (c++-mode         . c++-ts-mode)
+        (c-or-c++-mode    . c-or-c++-ts-mode)
+        (csharp-mode      . csharp-ts-mode)
+      ))
+
+```
+
+You can add additional entries for other programming modes you want to map.

@@ -96,5 +96,9 @@ There are other macro sections but these are the main ones I see used.
   a specific command once a Major mode is loaded. One example of this is to make
   it so if a programming mode is activated on a buffer then show line numbers.
 
+*Note:* It's important to remember `:ensure t` for third party packages. If not specified
+then the package won't be installed and you might end up confused on why expected
+commands are not available.
+
 We'll see our first practical use of this macro in the next section to setup a theme.
 

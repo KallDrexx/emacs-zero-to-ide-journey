@@ -13,6 +13,7 @@
     - [Text Wrapping](#text-wrapping)
   - [Organizing These Settings](#organizing-these-settings)
     - [Additional Customization Variables](#additional-customization-variables)
+  - [Line Numbers](#line-numbers)
   - [Mac Specific Settings](#mac-specific-settings)
   - [Default Frame Size](#default-frame-size)
 
@@ -224,6 +225,36 @@ configuration file, as they are defaults that make sense for me.
 ```
 
 Don't forget to save and use `M-x eval-buffer` to make them take effect!
+
+## Line Numbers
+
+It can be useful to have line numbers, especially in programming contexts. Emacs can display line numbers by
+enabling the `display-line-number-mode`. 
+
+While this can be manually activated via `M-x display-line-number-mode`, it can be automatically enabled. One
+example configuration is to have it enabled any time a buffer activates a mode that's categorized as a
+programming mode. This means you won't have line numbers for basic text buffers or markdown buffers, but
+that's good for me.
+
+This can be done by specifying some code that will run when a certain event (otherwise known as a hook) is
+triggered. In this case, all programming related major modes invoke the `prog-mode-hook`. These hooks can
+be applied pretty easily by adding a `:hook` section to the `use-package emacs` section:
+
+```elisp
+(prog-mode . display-line-numbers-mode)
+```
+
+This will execute the `display-line-numbers-mode` command every time a major mode is activated that runs the
+prog-mode-hook event.
+
+You can have line numbers be relative to your current position by changing the `(display-line-numbers-type 'relative)`.
+This will have the display show the exact line number for the line your cursor is, and the relative line number for every
+other line from the cursor. 
+
+This can be helpful if you are good at going up or down X number of lines instead of using `C-n` and `C-p` 
+one line at a time. If you see a line of text 20 lines down you can get to it with `C-u 20 C-n`.
+
+Having `(display-line-numbers-type t)` will use exact line numbers for every line.
 
 ## Mac Specific Settings
 

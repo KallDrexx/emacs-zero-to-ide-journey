@@ -5,8 +5,10 @@
 
   - [Standard Programming Major Modes](#standard-programming-major-modes)
   - [Tree-sitter](#tree-sitter)
+  - [Font Locking](#font-locking)
   - [Tree Sitter Navigation](#tree-sitter-navigation)
-  - [Ensuring Proper Configuration](#ensuring-proper-configuration)
+  - [Ensuring Tree Sitter Activates](#ensuring-tree-sitter-activates)
+  - [Indentation](#indentation)
 
 <!-- markdown toc end -->
 
@@ -142,6 +144,47 @@ means that the tree-sitter mode is correctly realizing that the rest of the code
 This can be extremely helpful in finding real bugs and not waiting for the compiler to hopefully give a clear
 message on why things are not as you expect.
 
+## Font Locking
+
+It's possible when you open a file in a valid tree sitter mode, there's minimum syntax highlighting
+actually occurring.
+
+It turns out there's a setting that controls how much syntax highlighting tree sitter will actually
+perform. It's called font locking, which appears to be an Emacs specific term. The font locking
+variable is `treesit-font-lock-level`, and the different level values are listed in the
+`describe-variable` documentation for it:
+
+> Level 1 usually contains only comments and definitions.
+> Level 2 usually adds keywords, strings, data types, etc.
+> Level 3 usually represents full-blown fontifications, including
+> assignments, constants, numbers and literals, etc.
+> Level 4 adds everything else that can be fontified: delimiters,
+> operators, brackets, punctuation, all functions, properties,
+> variables, etc.
+
+What does this mean in practice?
+
+Level 1 typescript:
+
+![level 1](fl1.png)
+
+Level 2:
+
+![level 2](fl2.png)
+
+Level 3:
+
+![level 3](fl3.png)
+
+Level 4:
+
+![level 4](fl4.png)
+
+Level 3 is usual the default, but it's worth setting the level you want. It's worth noting,
+that while experimenting you may need to kill the buffer for the setting to take effect
+properly. Changing the setting while the buffer is open actually caused some buggy
+highlighting for me.
+
 ## Tree Sitter Navigation
 
 This also unlocks some smarter functionality too due to Emacs being AST aware. For example,
@@ -176,7 +219,7 @@ Now every time we do `M-x my/treesit-next-if` it will navigate to the next if st
 isn't that useful but it shows how tree-sitter starts to give us the flexibility to really customize
 and take advantage of the AST.
 
-## Ensuring Proper Configuration
+## Ensuring Tree Sitter Activates
 
 The `treesit-auto` package is a great help on setting up grammars. However I have noticed the
 automatic conversion from non-tree sitter major modes to tree sitter modes does not always take
@@ -226,3 +269,20 @@ the following to the `init.el` file.
 Each entry is saying "if the file name contains the pattern, open it up in the specified
 mode". Note that the `\\'` pattern is how Emacs signifies the end of the string (with the 
 single quote at the end). 
+
+## Indentation
+
+When editing some files, you may notice that indenting code while in a tree sitter mode does
+not match the `(tab-width)` setting specified in your `init.el` file. Mine was set to 4, but
+editing typescript files caused indention to happen with a width of 2 instead of 4, which
+kept messing up my expected positions of code.
+
+It turns out that tree sitter has some language specific font variables. So in the case of
+typescript the `typescript-ts-mode-indent-offset` is set to 2, which causes the indentation
+in `typescript-ts-mode` to only be 2 instead of 4. 
+
+Setting this variable in the `use-custom emacs`'s `:custom` section can persist this
+
+```elisp
+(typescript-ts-mod-indent-offset 4)
+```

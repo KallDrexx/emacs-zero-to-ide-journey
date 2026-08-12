@@ -200,3 +200,29 @@ Then you can add the following to the end of your `init.el`:
 ```
 
 You can add additional entries for other programming modes you want to map.
+
+Likewise, in some cases it may not even detect the non-tree sitter mode when you
+open code files. In some cases it does not consistent across machines. For example,
+on my work computer opening a `.ts` file opened it in the `Fundamental` major mode,
+which is just bare bones text editing. 
+
+We can ensure that specific files get loaded in the correct major mode by adding
+the following to the `init.el` file.
+
+```elisp
+(dolist (entry '(
+                 ("\\.ts\\'"  . typescript-ts-mode)
+                 ("\\.tsx\\'" . tsx-ts-mode)
+                 ("\\.js\\'"  . js-ts-mode)
+                 ("\\.json\\'" . json-ts-mode)
+                 ("\\.cs\\'" . csharp-ts-mode)
+                 ("\\.cpp\\'" . c++-ts-mode)
+                 ("\\.c\\'" . c-ts-mode)
+                 )
+               )
+  (add-to-list 'auto-mode-alist entry))
+```
+
+Each entry is saying "if the file name contains the pattern, open it up in the specified
+mode". Note that the `\\'` pattern is how Emacs signifies the end of the string (with the 
+single quote at the end). 

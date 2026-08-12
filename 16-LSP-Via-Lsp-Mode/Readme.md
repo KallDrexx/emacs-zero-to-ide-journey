@@ -1,5 +1,22 @@
 # LSP Via LSP-Mode
 
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [What Is LSP-Mode](#what-is-lsp-mode)
+  - [C#](#c)
+    - [Solution Not Loading](#solution-not-loading)
+    - [IMenu Differences](#imenu-differences)
+    - [Conclusion](#conclusion)
+  - [Typescript](#typescript)
+  - [Other Languages](#other-languages)
+  - [Keymap Rebind](#keymap-rebind)
+  - [Documentation At Point](#documentation-at-point)
+  - [Conclusion](#conclusion-1)
+
+<!-- markdown toc end -->
+
+
 So the last post looked at the native Eglot LSP integration. Many people
 successfully use it and enjoy it's simplicity and performance. Unfortunately
 I had issues using it for C# (the second language I tried it with) and thus
@@ -206,6 +223,19 @@ Changing the prefix was a matter of adding the following to the
 This has to be done in the `:init` so it's active before lsp-mode starts, otherwise
 lsp-mode will still bind to `s-l` but the which-key integration will think it's
 `C-c l`.
+
+## Documentation At Point
+
+Unfortunately lsp-mode is not a clear win in all cases. The eldoc support so far seems a bit
+underwhelming. For example in Eglot we can see the following:
+
+![eglot eldoc](eglot-eldoc.png)
+
+However in lsp-mode we get:
+
+![lsp-mode eldoc](lsp-mode-eldoc.png)
+
+The latter is significantly less helpful to me.
 
 ## Conclusion
 

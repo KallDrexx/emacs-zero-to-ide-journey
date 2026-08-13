@@ -12,7 +12,10 @@
   - [Completion At Point](#completion-at-point)
   - [Code Actions](#code-actions)
   - [Other Languages](#other-languages)
-    - [C#](#c)
+    - [C# (Roslyn Language Server)](#c-roslyn-language-server)
+      - [Fixing The Error ](#fixing-the-error)
+      - [Loading The Solution](#loading-the-solution)
+      - [Launching Roslyn Language Server](#launching-roslyn-language-server)
     - [Typescript](#typescript)
     - [Verilog](#verilog)
   - [Conclusion](#conclusion)
@@ -274,7 +277,7 @@ clangd, which is a very common toolchain for C++ development.
 So let's try some other languages. Unfortunately, this is where things started breaking
 down for me.
 
-### C#
+### C# (Roslyn Language Server)
 
 If we open up a C# file and `M-x eglot` we get:
 
@@ -307,6 +310,8 @@ xref and other operations only within the file itself and not in the larger
 project. I pulled up the eglot events and found a bunch of `Internal Error`
 messages from the client side (not from the language server!). 
 
+#### Fixing The Error 
+
 So I ran `M-: (setq debug-on-error t)` (the `M-:` allows evaluating arbitrary
 elips expressions ad-hoc), then `M-x eglot-reconnect`. This popped up a buffer
 with a lisp error on `eglot--glob-parse`. 
@@ -320,9 +325,94 @@ fixed in [a commit back in December 2025](https://lists.nongnu.org/archive/html/
 but since the current Emacs version of 30.2 was released in August 2025 that fix isn't in my
 current Emacs build.
 
-I tried installing the ELPA official package for elgot whose 1.24 version was released
-back in July 2026, but it didn't work either (the error messages looked a bit different
-but were all glob related still).
+The amazing thing about Emacs is that you have access to everything. That includes access
+to override any function, including functions provided by packages. One of the ways to
+override a function is with a concept of
+[advising a function](https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html).
+This allows you to add a function shimmed before or after the real function.
+
+So what we want is an advice that handles the `RelativePattern` object if provided, or
+fall back to the original if it's a normal glob string. We can do that with:
+
+```elisp
+(defun my-eglot--glob-parse-relative-advice (orig-fun pattern)
+  "Around-advice for `eglot--glob-parse' adding RelativePattern support.
+
+PATTERN is either:
+  - a plain glob string (LSP `Pattern'), passed straight to ORIG-FUN, or
+  - an LSP 3.17 `RelativePattern' plist, (:baseUri URI :pattern STRING),
+    in which case BASEURI is resolved to a filesystem path and
+    concatenated with PATTERN to form one absolute glob string, which
+    is then handed to ORIG-FUN.
+
+This keeps everything downstream (`eglot--glob-compile' and its
+callers) working on absolute-path globs as usual, so no other part
+of the pipeline needs to change."
+  (if (and (consp pattern) (keywordp (car pattern)))
+      (let* ((base-uri (plist-get pattern :baseUri))
+             (rel-pattern (plist-get pattern :pattern))
+             (base-path (and base-uri
+                              (if (fboundp 'eglot--uri-to-path)
+                                  (eglot--uri-to-path base-uri)
+                                base-uri))))
+        (unless (and base-path rel-pattern)
+          (error "eglot--glob-parse: malformed RelativePattern: %S" pattern))
+        (funcall orig-fun
+                 (concat (directory-file-name base-path) "/" rel-pattern)))
+    (funcall orig-fun pattern)))
+
+(advice-add 'eglot--glob-parse :around #'my-eglot--glob-parse-relative-advice)
+```
+
+
+Now if we run these expressions and restart Eglot, we don't get a ton of errors in the Eglot events
+view.
+
+#### Loading The Solution
+
+That didn't fix the issue that xref and other operations are only operating for the local file
+itself. After doing some research it appears that the problem is that just opening a `.cs` file
+does not automatically associate it with the C# solution file it's relevant to. We need to find
+the relevant solution file and tell the roslyn language server about it.
+
+Adding the following function into my `init.el` gave me that functionality:
+
+```elisp
+;; Send a json-rpc via eglot to the roslyn-language-server so the server
+;; is aware of the relevant solution file.
+(defun my/eglot-roslyn-open-solution (sln-file)
+  "Send Roslyn's custom `solution/open' notification for SLN-FILE
+to the Eglot server managing the current buffer."
+  (interactive "fSolution (.sln) file: ")
+  (let ((server (eglot-current-server)))
+    (unless server
+      (user-error "No active Eglot connection in this buffer"))
+    (jsonrpc-notify
+     server
+     :solution/open
+     (list :solution (eglot-path-to-uri (expand-file-name sln-file))))))
+```
+
+Now, once I have eglot loaded for a project I can use `M-x my/eglot-roslyn-open-solution`, select
+the `.sln` file I want, and viola. Now I have full xref, search, and diagnostic support for the
+whole solution.
+
+I have not found a good hook to automatically search and load a solution file by default, but
+selecting it by hand isn't too big of a deal for now.
+
+#### Launching Roslyn Language Server
+
+So right now every time we `M-x eglot`, we have to manually type in `roslyn-language-server --stdio`
+in order to launch it. We can have it automatically launch roslyn when we are in a C# buffer
+by the following directive in our `init.el`
+
+```elisp
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '((csharp-mode csharp-ts-mode) . ("roslyn-language-server"
+                                                 "--logLevel" "Information"
+                                                  "--stdio"))))
+```
 
 ### Typescript
 

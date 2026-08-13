@@ -414,6 +414,8 @@ by the following directive in our `init.el`
                                                   "--stdio"))))
 ```
 
+Now just opening any `.cs` file and executing `M-x eglot` will start up the roslyn language server.
+
 ### Typescript
 
 While I work on Node and Typescript projects at work, I don't do much in my personal time.
@@ -429,21 +431,78 @@ you need to run `pnpm install` so that it has a `node_modules` folder with its o
 environment. I code in Typescript as part of my day job but I don't manage the infrastructure around
 it so this is definitely a me mistake.
 
-What is an Emacs/Eglot quirk (at least for newbies like me) is that the error shows in the minibuffer
-and goes away pretty quickly. The Eglot event buffer just showed an initialization request sent
-and nothing after that. The `M-x eglot-stderr-buffer` command seemed to only show me a message
-in the minibuffer of "No current JSON-RPC" connection and thats it. I did eventually find the 
-typescript environment error in the `*Messages*` buffer and it at least showing that Eglot exited
-with that error. 
+Using Eglot with a `$PATH` wide installation of typescript is not trivial, because you need to tell
+Eglot where to tell the typescript language server where to find `tsserver`. That's not too bad if
+you use Emacs on a single machine, but I share my configuration on multiple machines on different
+operating systems and thus do not want to deal with that complexity. So project specific typescript
+dev dependencies and individual `pnpm install`s it is.
 
-I should check the `*Messages*` buffer more often, but it also has no timestamping or easy way to
-correlate when and how a message was received, so it can be hard to parse.
+It's also worth pointing out that Eglot seems to have trouble finding the typescript server if
+typescript version 7 is installed, so using 5 or 6 seems to work best at the moment.
 
-Either way, fixing that issue now has the typescript language server integration fully up and
+After doing the `pnpm install`, I now have typescript language server integration fully up and
 running!
 
 ![typescript working](ts-working.png)
 
+That being said, the out of the box experience has limitations, especially with Eldoc support. For
+example, placing the cursor of a `Point` class provides pretty useless documentation:
+
+![bare bones class](ts-eldoc1.png)
+
+The same happens hovering over enumerations:
+
+![bare bones enum](ts-eldoc2.png)
+
+These are pretty useless and don't really give me enough information to be helpful to me. However,
+by opening up the Eglot events buffer I can clearly see that this isn't an Eglot issue, but it's
+the language server itself that's not giving me much information back.
+
+After doing some research, it appears that the typescript language version has a hover verbosity
+setting, which allows it to bring back more information. So we need to tell Eglot to inform the
+language server that we support verbosity, and that we want to specify verbosity level when a
+hover command is issued by Eglot (which occurs when the point moves onto a symbol).
+
+This can be done by creating an advice around the Eglot hover and text document functions. We
+also need to tell Eglot to increase the maximum hover length and that we support hover length
+verbosity:
+
+```elisp
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '((typescript-ts-base-mode tsx-ts-mode typescript-mode)
+                 . ("typescript-language-server" "--stdio"
+                    :initializationOptions
+                    (:hostInfo "emacs"
+                     :supportsHoverVerbosity t
+                     :preferences (:maximumHoverLength 4000))))))
+
+(defvar my/eglot-hover-verbosity nil
+  "When non-nil, verbosity level to attach to textDocument/hover.")
+
+(define-advice eglot--TextDocumentPositionParams
+    (:around (fn &rest args) hover-verbosity)
+  (let ((params (apply fn args)))
+    (if my/eglot-hover-verbosity
+        (append params (list :verbosityLevel my/eglot-hover-verbosity))
+      params)))
+
+;; Make ordinary eldoc hovers always ask for level 1.
+(define-advice eglot-hover-eldoc-function
+    (:around (fn &rest args) hover-verbosity)
+  (let ((my/eglot-hover-verbosity (or my/eglot-hover-verbosity 1)))
+    (apply fn args)))
+```
+
+After applying this we now get much more useful information:
+
+![Point class docs](ts-eldoc3.png)
+
+![Enum docs](ts-eldoc4.png)
+
+One limitation of the documentation is that it only shows comments attached to a type/interface/enum/etc...
+if it is using the jsdoc standard (e.g. `/**` instead of `//` or `/*`). This is a limitation
+on the typescript language server though and not of Eglot in general.
 
 ### Verilog
 

@@ -17,6 +17,9 @@
       - [Loading The Solution](#loading-the-solution)
       - [Launching Roslyn Language Server](#launching-roslyn-language-server)
     - [Typescript](#typescript)
+      - [Typescript 6 And Below](#typescript-6-and-below)
+      - [Typescript 7](#typescript-7)
+      - [Better Eldoc Support](#better-eldoc-support)
     - [Verilog](#verilog)
   - [Conclusion](#conclusion)
 
@@ -418,60 +421,76 @@ Now just opening any `.cs` file and executing `M-x eglot` will start up the rosl
 
 ### Typescript
 
-While I work on Node and Typescript projects at work, I don't do much in my personal time.
-So I downloaded some Typescript examples just to see how they worked.
+At the time of writing this (August 2026), Typescript is going through a weird transition. Typescript
+version 7 was released in July 2026 and with it came with the rewrite in Go. The relevant change
+though is that it no longer uses the `typescript-language-server` executable for LSP purposes, the
+actual compiler `tsc` is now the language server and the `typescript-language-server` executable
+no longer works if you have typescript 7 installed.
 
-So I downloaded an open source typescript tetris game from Github, opened up the `app.ts` 
-file and loaded eglot. Eglot immediately fails with an error about not finding a Typescript
-environment. I definitely have both `tsc` and `typescript-language-server` available in my `$PATH`
-so I'm not sure what to make of that. 
+This is a confusing situation because many people haven't upgraded yet. So when you upgrade 
+the typescript language server just responds to LSP commands with an error that it couldn't find
+a typescript environment. Most guides on the internet predate the TS7 transition and thus all
+claim you just have to `npm i -g typescript` and viola.
 
-This error came from the language server and not Eglot, and is just a quirk on typescript, where
-you need to run `pnpm install` so that it has a `node_modules` folder with its own typescript
-environment. I code in Typescript as part of my day job but I don't manage the infrastructure around
-it so this is definitely a me mistake.
+So there are two different configurations that are necessary depending if your typescript environment
+is before or after the version 7. It's even worse if you have global TS7 but a project specific
+`devDependency` with typescript pinned to a previous version.
 
-Using Eglot with a `$PATH` wide installation of typescript is not trivial, because you need to tell
-Eglot where to tell the typescript language server where to find `tsserver`. That's not too bad if
-you use Emacs on a single machine, but I share my configuration on multiple machines on different
-operating systems and thus do not want to deal with that complexity. So project specific typescript
-dev dependencies and individual `pnpm install`s it is.
+#### Typescript 6 And Below
 
-It's also worth pointing out that Eglot seems to have trouble finding the typescript server if
-typescript version 7 is installed, so using 5 or 6 seems to work best at the moment.
-
-After doing the `pnpm install`, I now have typescript language server integration fully up and
-running!
+Typescript before version 7 used `typescript-language-server`, and that's what Eglot's default
+configuration assumes. So as long as both `typescript` and `typescript-language-server` installed
+globally via npm, then it should just work. Loading a typescript file and then running 
+`M-x eglot` and you should see a successful startup message:
 
 ![typescript working](ts-working.png)
 
-That being said, the out of the box experience has limitations, especially with Eldoc support. For
-example, placing the cursor of a `Point` class provides pretty useless documentation:
+If it didn't work, then open up the Eglot events buffer to try and see why.
+
+
+#### Typescript 7
+
+When running against Typescript 7, we can't use the `typescript-language-server` executable,
+but instead need Eglot to call `tsc` but in LSP mode. This can be done via:
+
+```elisp
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '((typescript-ts-base-mode tsx-ts-mode typescript-mode)
+                 . ("tsc" "--lsp" "--stdio"))))
+```
+
+With that added, now load a typescript file and run `M-x eglot`. Eglot should now have full
+LSP capablities.
+
+#### Better Eldoc Support
+
+
+Unfortunately, the default integration isn't perfect. If you hover over types or enums and open
+the Eldoc buffer, you will notice that the documentation is pretty lackluster.
 
 ![bare bones class](ts-eldoc1.png)
 
-The same happens hovering over enumerations:
-
 ![bare bones enum](ts-eldoc2.png)
 
-These are pretty useless and don't really give me enough information to be helpful to me. However,
-by opening up the Eglot events buffer I can clearly see that this isn't an Eglot issue, but it's
-the language server itself that's not giving me much information back.
+If you look at the Eglot events buffer you'll see that this lack of information comes directly
+from the typescript language server itself, it isn't an issue with Eglot directly. 
 
 After doing some research, it appears that the typescript language version has a hover verbosity
 setting, which allows it to bring back more information. So we need to tell Eglot to inform the
 language server that we support verbosity, and that we want to specify verbosity level when a
 hover command is issued by Eglot (which occurs when the point moves onto a symbol).
 
-This can be done by creating an advice around the Eglot hover and text document functions. We
-also need to tell Eglot to increase the maximum hover length and that we support hover length
-verbosity:
+There are two steps for this. 
+
+The first stepso you need to modify the way Eglot calls `typescript-language-server` or `tsc` and tell
+it to support hover verbosity.  The second step to do is to create an advice around the Eglot hover and text document functions.
 
 ```elisp
 (with-eval-after-load 'eglot
   (add-to-list 'eglot-server-programs
                '((typescript-ts-base-mode tsx-ts-mode typescript-mode)
-                 . ("typescript-language-server" "--stdio"
+                 . ("typescript-language-server" "--stdio" ;; **NOTE** Switch to TSC for TS7
                     :initializationOptions
                     (:hostInfo "emacs"
                      :supportsHoverVerbosity t
@@ -499,10 +518,6 @@ After applying this we now get much more useful information:
 ![Point class docs](ts-eldoc3.png)
 
 ![Enum docs](ts-eldoc4.png)
-
-One limitation of the documentation is that it only shows comments attached to a type/interface/enum/etc...
-if it is using the jsdoc standard (e.g. `/**` instead of `//` or `/*`). This is a limitation
-on the typescript language server though and not of Eglot in general.
 
 ### Verilog
 

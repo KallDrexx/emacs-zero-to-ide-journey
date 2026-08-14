@@ -79,7 +79,7 @@ installation instructions I use for them:
 * Lua - `lua-language-server` installed via brew or system package manager
 * PytEhon - `pipx install pyright`
 * typescript - `pnpm i -g typescript typescript-language-server`
-* Verilog - `Verible` manually installed [from Github](https://github.com/chipsalliance/verible)
+* Verilog - `slang-server` manually installed [from Github](https://github.com/hudson-trading/slang-server)
 
 ## What Is Eglot
 
@@ -522,31 +522,52 @@ After applying this we now get much more useful information:
 ### Verilog
 
 Opening up a verilog file and running `M-x eglot` shows the "Couldn't guess LSP server"
-prompt. So I enter `verible-verilog-ls` and eglot shows
+prompt. So I enter `slang-server` and eglot shows
 
-> 'Verible Verilog language server.' now managing 'nil' buffers in project
+> Server 'slang-server' now managing 'nil' buffers in project
 
 Thats... interesting. Typing `M-.` to go to definition asks me
 `Visit tags table (default TAGS)` which I have no idea what it means. Selecting an option
 removes all highlighting as it puts it into TAGS major mode. Going back to `verilog-mode`
 ends up bringing highlighting back but with a read-only buffer.
 
-Even after refreshing eglot, `M-?` gives me `Sole Completion` responses on everything. I can
-not find an events buffer for the verilog mode, nor did the `stderr` for eglot show anything
-useful. Unfortunately, that left me stuck at this point.
+Long story short, there was no native Eglot knowledge of `verilog-mode`, and therefore just
+because you run `M-x eglot` from within a mode doesn't mean it can automatically attach itself
+to that mode. That's even more confusing because C# worked, but that's because the
+`eglot-server-programs` list actually had an entry for `csharp-mode`, but none for verilog-mode.
 
-At some point later I did find an events buffer for this specific sesion, and all I can
-figure out is that Eglot gets stuck after sending `workspace/didChangeConfiguration`, and
-then eventually the verible process ends. This language server did work with my Neovim
-setup, so, I don't think that's it.
+So we want to set up the configuration of this list so it not only knows that Eglot should attach
+to this mode, but also what server we want it to use (so we don't have to type it every time).
 
-I can also verify that the `M-?` and `M-.` commands are not triggering eglot events in this buffer.
+This can be done with the following `init.el`
+
+```elisp
+ 
+(with-eval-after-load 'eglot
+  (add-to-list 'eglot-server-programs
+               '(verilog-mode . ("slang-server"))))
+```
+ 
+After evaluating this, I can now go back to my verilog buffer, use `M-x eglot` and have full
+LSP functionality.
+
+Well mostly... While typing I noticed that pressing `TAB` did not show the popup for completion
+options. If I run `M-x completion-at-point` I *do* get the completion options though.
+
+After some research it appears that the `verilog-mode` uses the `electric-verilog-tab` which does
+tab indention while in verilog mode. Since I have my `init.el` configuration with `tab-always-indent 'complete`
+the tab key will first try to get the line at the correct indention level, and only show completions
+if it's already at the correct indention level. For whatever reason, the `electric-verilog-tab` does
+not respond that it's at the expected level, and thus completions never show up.
+
+Completions do work when triggered with `M-TAB` (which is bound to `verilog-complete-word` or by
+pulling up `C-M-i` (`completion-at-point`). So everything is working with that one caveat.
 
 ## Conclusion
 
-Eglot is not the only language server support in town, so maybe we'll have an easier time
-with another one.
+And like that, I have Eglot up and running for some of the programming languages I use on a
+regular basis. 
 
-I want to stress that this was not wasted effort though. Eglot and it's docs taught me
-a lot about xref, imenu, and other Emac native systems that will be relevant to other
-packages.
+That being said, Eglot is not the only language server support in town. Doom emacs and many
+other distributions seem to use a package called `lsp-mode`. Lets give that a look to see 
+if we can compare them.

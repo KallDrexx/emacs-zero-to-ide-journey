@@ -16,13 +16,10 @@
 
 <!-- markdown toc end -->
 
+So Eglot is setup and good to go. Many people are very happy with just Eglot, but
+since a lot of Emacs distributions use lsp-mode I wanted to at least try it. 
 
-So the last post looked at the native Eglot LSP integration. Many people
-successfully use it and enjoy it's simplicity and performance. Unfortunately
-I had issues using it for C# (the second language I tried it with) and thus
-could not use it (at least not easily).
-
-The Eglot investigation was worth it, because it taught me about Flymake, xref,
+The Eglot investigation was worth it even if I don't end up using it because it taught me about Flymake, xref,
 imenu, and other Emacs systems that will be important for most other LSP
 integrations (and you should read that post if you haven't).
 
@@ -39,8 +36,9 @@ you may have one LSP for html, one for javascript, one for tailwind css, etc... 
 have to use a multiplexor with Eglot for the same capabilities.
 
 The [languages](https://emacs-lsp.github.io/lsp-mode/page/languages/) page lists a
-lot more languages and language server support than Eglot, so that's a good sign for
-us at least. It also looks like it has a `M-x lsp-install-server` which can make it
+lot more languages and language server support than Eglot, although I already was able 
+to plug in support for unsupported lsps pretty easily with Eglot.
+It also looks like it has a `M-x lsp-install-server` which can make it
 not required to manually install language servers (like vscode and others do).
 
 Installation was pretty simple, I just had to add the following to my `init.el`
@@ -57,20 +55,14 @@ Installation was pretty simple, I just had to add the following to my `init.el`
   :commands lsp)
 ```
 
-I'm sure I'll be adding a lot more modes, but lets start with C# since that
-is the mode that Eglot gave me trouble with.
+I'm sure I'll be adding a lot more modes, but lets start with C#.
 
 Once evaluated, we can make sure it's installed properly with `M-x lsp-doctor`. For
 me the only optional performance warning was not having plists enabled. I was able
 to activate that by adding `(setenv "LSP_USE_PLISTS" "true")` to the beginning of
 my `init.el`, `M-x delete-package` to remove lsp-mode, and then restart emacs. 
 
-The rest of the recommendations were things we had already done for the most part.
-
 ## C#
-
-Ok, so now let's see if this gets past the issue we had with C#. The lsp-mode
-docs explicitely show that the roslyn language server is one of the supported C# ones.
 
 Opening my first C# file now asks me which language server I want to use. I selected
 `csharp-roslyn).  I then got presented with:
@@ -78,9 +70,7 @@ Opening my first C# file now asks me which language server I want to use. I sele
 ![C# Project Selection](csharp-project.png)
 
 It's not clear if it's talking about a C# project or a Emacs project. My assumption is
-that the lsp-mode will attempt to use this project root to search for relevant
-language server projects. For C#, I assume it'll use this root to find a C# solution file
-to tie the file I just opened to. 
+this is to designate it as an Emacs project.
 
 Using `i` the mode goes away and I can clearly tell that the lsp-mode is activated automatically:
 
@@ -90,6 +80,13 @@ The top has a display showing the hiearchy of the symbol at the point. It appear
 the directory structure from the `csproj` root is up there, and clicking on them opens
 `dired` to that path. The hiearchy past the current file we are in navigates to those
 symbols. I suspect there is a keyboard shortcut for these but haven't looked yet.
+
+This is actually a useful feature for me because it allows me to quickly see see
+the semantic code path (i.e. class -> method) that I am currently in, which can
+be confusing if the top of the method definition is above the top of the screen.
+
+Many editors do this either with a single or multiple line, and it's something I was thinking
+I may need to customize while going the Eglot route.
 
 I also see Flymake correctly telling me there are zero errors or warnings in the mode
 line. I also see the mode line showing the LSP(csharp-roslyn) minor mode (which also
@@ -104,8 +101,11 @@ options specific to the C# line we are on (property refactors).
 The first problem I encountered was `M-.` (go to definition) wasn't working, and 
 `M-?` (find references) was also not providing any references outside this file.
 
-My original assumption was that it only loaded the `csproj` file and not the C# 
-solution file. Exploring `M-x` options led me to the `lsp-roslyn-open-solution-file` command.
+I had this issue with Eglot originally too, and it was because the roslyn language server did
+not have a solution loaded, so it didn't really know the context that the current file was 
+loaded in.
+
+Exploring `M-x` options led me to the `lsp-roslyn-open-solution-file` command.
 This command is useful because it allows you to select a different solution file if you have
 multiples.
 
@@ -130,21 +130,27 @@ yet (which has the extension slnx). I was able to use `M-:` to evaluate a new co
 function with `slnx`, and then re-run `M-x lsp-roslyn-open-solution-file` and viola, I now
 can successfully find references, go to definition, better completion, etc... 
 
-I put the defun declaration in the `use-package lsp-mode`'s `:config` section to override it
-after package load until a new version with a fix is released.
+So now we can add an advice when `lsp-roslyn` loads to override the built in functionality
 
 ```elisp
-  ;; Temporary workaround for C# slnx support
-  (with-eval-after-load 'lsp-roslyn
-    (defun lsp-roslyn--find-solution-file ()
-      (let ((solutions (lsp-roslyn--find-files-in-parent-directories
-                        (file-name-directory (buffer-file-name))
-                        (rx (* anychar) "." (or "sln" "slnx") eos))))
-        (cond
-         ((not solutions) nil)
-         ((eq (length solutions) 1) (cl-first solutions))
-         (t (lsp-roslyn--pick-solution-file-interactively solutions))))))
+(with-eval-after-load 'lsp-roslyn 
+  (defun my/lsp-roslyn--find-solution-file ()
+    (let ((solutions (lsp-roslyn--find-files-in-parent-directories
+                      (file-name-directory (buffer-file-name))
+                      (rx (* anychar) "." (or "sln" "slnx") eos))))
+      (cond
+       ((not solutions) nil)
+       ((eq (length solutions) 1) (cl-first solutions))
+       (t (lsp-roslyn--pick-solution-file-interactively solutions)))))
+
+  (advice-add 'lsp-roslyn--find-solution-file :override #'my/lsp-roslyn--find-solution-file))
 ```
+
+After that it found the solution file and successfully loaded it. The other advantage that
+lsp-mode is showing here compared to Eglot is that lsp-mode remembers the solution selection
+I made last. So opening a file in this project again automatically loads the correct solution,
+without me having to select it again. I'm sure I can script Eglot to find and auto-load the 
+solution automatically, but this is still nice.
 
 ### IMenu Differences
 

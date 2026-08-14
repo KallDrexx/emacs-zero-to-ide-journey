@@ -21,6 +21,7 @@
       - [Typescript 7](#typescript-7)
       - [Better Eldoc Support](#better-eldoc-support)
     - [Verilog](#verilog)
+    - [Rust](#rust)
   - [Conclusion](#conclusion)
 
 <!-- markdown toc end -->
@@ -562,6 +563,12 @@ not respond that it's at the expected level, and thus completions never show up.
 
 Completions do work when triggered with `M-TAB` (which is bound to `verilog-complete-word` or by
 pulling up `C-M-i` (`completion-at-point`). So everything is working with that one caveat.
+
+### Rust
+
+Rust was straight-forward, though I did have the hiccup that `rust-analyzer` wasn't actually
+installed. After doing `rustup component add rust-analyzer`, navigating to a rust file and
+using `M-x eglot` just worked.
 
 ## Conclusion
 

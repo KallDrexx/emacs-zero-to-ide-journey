@@ -135,4 +135,27 @@ one unpulled commit. However, this isn't necessarily because of a merge conflict
 I have not set this machine's git config on how to automatically resolve diverged branches
 (I usually have it auto-rebase local commits on remote). 
 
-After setting that up I try a pull again.
+After setting that up I try a pull again. Now we have the merge conflict.
+
+![merge conflict](merge-conflict.png)
+
+This has opened an `smerge` buffer, which is a built in mode for handling merges. You can use
+`C-c ^` to access merge commands. You can do `C-c ^ n` and `C-c ^ p` to navigate to different
+merge changes. `C-c ^ u` to keep the upper change while `C-c ^ l` to keep the lower (or 
+`C-c & a` to keep both). Not the most ergonomic but we'll see.
+
+After finishing and saving, I went back to the magit interface and did `r r` to continue 
+the rebase (since I had it setup to rebase the pull). Once completed I was free to pull
+and push successfully.
+
+## Cloning A New Repository
+
+Sometimes I need to clone a repository that I do not have locally. This can be done with the
+`M-x magit-clone`. 
+
+## Conclusion
+
+Magit definitely has a lot of options and definitely seems to mimic the command line interface.
+The complications I see from it mostly come from getting a handle on Emacs window management
+and handling merges with Emacs. Both will require their own larger deep dives.
+

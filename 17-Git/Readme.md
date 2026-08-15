@@ -1,5 +1,18 @@
 # Git Via Magit
 
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [Installation](#installation)
+  - [Navigating](#navigating)
+  - [Fetching](#fetching)
+  - [Committing](#committing)
+  - [Merge Conflicts](#merge-conflicts)
+  - [Cloning A New Repository](#cloning-a-new-repository)
+  - [Conclusion](#conclusion)
+
+<!-- markdown toc end -->
+
 I have almost always disliked git clients that are in IDEs and always preferred
 dedicated clients (and in the past 5+ years mostly the git command line interface).
 
@@ -116,6 +129,10 @@ After writing the commit it was not obvious how to proceed with the commit. It t
 to `C-c C-c` to do so. That took me a while to find and I'm not sure how you are meant to
 discover that. Eventually I noticed it tells you this in the echo buffer (and thus messages
 buffer) but only for a short time, so it went away before I noticed it.
+
+I guess if you are already familiar with Emac-isms you would have naturaly pressed `C-c` and
+had which-key tell you what to do from there, and that would have made it obvious. As a
+newcomer to Emacs that's not ingrained in my mind yet.
 
 Now that you have an unmerged commit, you can push it up to the origin with `P u`. 
 

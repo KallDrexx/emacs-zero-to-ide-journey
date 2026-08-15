@@ -102,7 +102,7 @@ and expand the contents with `TAB` to see the changes in that file.
 
 ![expanded changes](expanded-changes.png)
 
-Ok so let's assume we don't want part of this change, how can we manage that? It turns
+Ok so blah blah blah let's assume we don't want part of this change, how can we manage that? It turns
 out we can type `d d` (diff do-what-i-mean) to open up the diff of all unstaged changes. This
 allows us to use the `n` and `p` keys to navigate the changes. 
 

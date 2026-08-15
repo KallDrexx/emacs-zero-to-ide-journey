@@ -9,9 +9,12 @@
     - [IMenu Differences](#imenu-differences)
   - [Typescript](#typescript)
   - [Verilog](#verilog)
-  - [Other Languages](#other-languages)
+  - [C++](#c)
+  - [Rust](#rust)
   - [Keymap Rebind](#keymap-rebind)
   - [Documentation At Point](#documentation-at-point)
+  - [LSP Mode UI Enhancements](#lsp-mode-ui-enhancements)
+  - [Find All References Gotcha](#find-all-references-gotcha)
   - [Conclusion](#conclusion)
 
 <!-- markdown toc end -->
@@ -229,8 +232,21 @@ designed against `typescript-language-server`. TS7 support can be patched in wit
    ((vectorp data) (cl-map 'vector #'my/lsp--strip-null-values data))
    (t data)))
 
+(defvar my/lsp--strip-null-server-ids '(ts7-ls)
+  "Server IDs whose outgoing LSP messages should have null values stripped.")
+
+(defun my/lsp--should-strip-nulls-p ()
+  "Non-nil if the in-flight LSP message is destined for a server
+in `my/lsp--strip-null-server-ids'."
+  (and (boundp 'lsp--cur-workspace)
+       lsp--cur-workspace
+       (memq (lsp--client-server-id (lsp--workspace-client lsp--cur-workspace))
+             my/lsp--strip-null-server-ids)))
+
 (defun my/lsp--make-message-strip-nulls (args)
-  (list (my/lsp--strip-null-values (car args))))
+  (if (my/lsp--should-strip-nulls-p)
+      (list (my/lsp--strip-null-values (car args)))
+    args))
 
 (with-eval-after-load 'lsp-mode
   (advice-add 'lsp--make-message :filter-args #'my/lsp--make-message-strip-nulls))
@@ -277,10 +293,22 @@ they make it easy to register new server support.
 
 After adding that, I now have verilog support working as expected.
 
-## Other Languages
+## C++
 
-I tried C++ and did not really hit any issues worth noting. Everything
-seemed to work just fine.
+C++ worked just fine, and I didn't really hit any issues.
+
+## Rust
+
+Rust did not work correctly for me at all. It said it was connected to rust analyzer, but
+it was showing a lot of really weird errors all over the place.
+
+![rust errors 1](rust-errors.png)
+
+![rust errors 2](rust-errors-2.png)
+
+Eglot was using rust-analyzer for the same project with no issues, and cargo successfully
+builds the project. I'm not sure what was going on here.
+
 
 ## Keymap Rebind
 
@@ -330,13 +358,42 @@ of `use-package lsp-mode`
 
 That being said, it apperas that `C-h .` doesn't work to bring up eldoc documentation buffer.
 It's not a deal breaker, as it can be opened manually with `M-x eldoc-doc-buffer` but
-it would be nice to just work.
+it would be nice to just work. 
 
-## Conclusion
+It can also be opened via `M-x lsp-describe-thing-at-point`, which doesn't open up in the
+eldoc buffer but instead a `lsp-help` buffer.
+
+## LSP Mode UI Enhancements
+
+Lsp-mode has some extra UI enhancements that provide some other convieniences that modern editors
+have. These are included in the `lsp-ui` package which can be added via
+
+```elisp
+(use-package lsp-ui
+  :ensure t
+  )
+```
+
+After installing, you can now use your mouse corsor over an item to display a popup with info, 
+without moving your cursor:
+
+![lsp-ui hover](lsp-ui-hover.png)
+
+There are other enhancements that the `lsp-ui` package adds, such as sideline diagnostics.
+This places diagnostic messages directly in your buffer to the side. This does not seem
+to work for me, and I'm not sure if it requires flycheck (as opposed to flymake) or what.
+
+For me though, that adds a lot of noise and distraction and I'd prefer a dedicated diagnostics
+window so I'm not going to spend much time right now trying to diagnose it.
+
+The lsp-mode documentation [has a great visual guide](https://emacs-lsp.github.io/lsp-mode/tutorials/how-to-turn-off/)
+that describes each visible feature and what Emacs variables toggle them.
+
+## Find All References Gotcha
 
 Lsp-mode seems to work pretty well except for a few gotchas.
 
-The one main bug I have found is with find references (`M-?`). It claims the default is
+Besides the eldoc gotcha, the xref fine references (`M-?`) seems to act oddly. It claims the default is
 the symbol that's under the point, but that's not actually the case. 
 
 ![find references bug](find-refs.png)
@@ -349,5 +406,22 @@ not purpose putting the point on the symbol I want to look for. It also means th
 find all references of a local value, and have to resort to highlighting and manually scanning
 the code. 
 
-I'll have to see how much that annoys me and if there is a work around.
+You can find all references with the same simplicity as Eglot provides with `M-?` by using the
+lsp-mode specific `M-x lsp-find-references` command (mapped to `s-l g r` by default). 
 
+## Conclusion
+
+Lsp-mode has a lot of features and capabilities above Eglot. However, in my workflows so far the only
+advantages I can see are lsp-mode gives me are breadcrumbs and auto-loading of C# solutions. 
+
+On the other hand, lsp-mode seems a bit more cumbersome to me. Find all references and navigating
+by references is something I use a lot and remembering that if I'm using an LSP I need to use
+`C-c l g r` but if I'm in an elisp buffer I should be using `M-?`. If I'm in an elisp buffer
+then I can just `C-h .` but that doesn't work in an lsp-mode managed buffer.
+
+With the rust functionality not working for some reason (granted I didn't spend much time diagnosing it),
+the lsp-mode hover popup proving to be a big distraction anytime I touch my mouse, and other paper cuts
+I think I'm just going to stick with Eglot.
+
+I can see a path towards using elisp to fix the two disadvantages I have with lsp-mode, and it just feels
+better integrated with the whole Emacs infrastructure.

@@ -7,12 +7,12 @@
   - [C#](#c)
     - [Solution Not Loading](#solution-not-loading)
     - [IMenu Differences](#imenu-differences)
-    - [Conclusion](#conclusion)
   - [Typescript](#typescript)
+  - [Verilog](#verilog)
   - [Other Languages](#other-languages)
   - [Keymap Rebind](#keymap-rebind)
   - [Documentation At Point](#documentation-at-point)
-  - [Conclusion](#conclusion-1)
+  - [Conclusion](#conclusion)
 
 <!-- markdown toc end -->
 
@@ -161,16 +161,9 @@ me with a second menu of properties and methods within the selected type.
 
 ![imenu second level](csharp-imenu2.png)
 
-### Conclusion
-
-So far while playing around, the C# LSP is now successfully working for me.
-
 ## Typescript
 
-Before going into a typescript file, I removed the `node_modules` folder from the
-typescript project, just to see how it handles that case compared to Eglot. 
-
-I also added the following to the `use-package lsp-mode`'s `:hook` section
+I added the following to the `use-package lsp-mode`'s `:hook` section
 
 ```elisp
 (typescript-ts-mode . lsp)
@@ -184,33 +177,109 @@ error.
 
 ![typescript error](ts-error.png)
 
-Unlike the Eglot case, the error did not immediately go away with the only way to find it
-again was to go to the messages buffer. Using `M-x lsp-mode` to try and reactivate it
-gives me the same error but this time at least shows `Disconnected` in the mode line.
+So now we are back in the TS7 vs TS6 issue yet again, and currently the lsp-mode package is
+designed against `typescript-language-server`. TS7 support can be patched in with:
 
-I found that lsp-mode creates a `*lsp-log*` buffer. However, this doesn't help my
-current situation, presumably because this error is coming from the typescript
-language server itself and not lsp-mode itself.
+```elisp
+(with-eval-after-load 'lsp-javascript
+  (defcustom lsp-clients-typescript7-path "tsc"
+    "Path to the TypeScript 7 native binary (supports `tsc --lsp --stdio`)."
+    :group 'lsp-typescript
+    :type 'string)
 
-Unfortunately, this did not seem to be an issue with not running `pnpm install` as
-was the case with Eglot. After some searching I came across
-[this issue](https://github.com/emacs-lsp/lsp-mode/issues/5099). Essentially, a 
-new version of typescript's compiler was released (version 7) very very recently,
-and that changed the path of tsserver. Manually running `pnpm i -g typescript@6` allowed 
-it to find the typescript server and work.
+  (defun lsp-clients-typescript7-find-binary ()
+    "Prefer the project-local TS7 binary, fall back to PATH."
+    (or (when-let* ((root (locate-dominating-file default-directory "node_modules")))
+          (let ((local (expand-file-name "node_modules/.bin/tsc" root)))
+            (when (file-executable-p local) local)))
+        (executable-find lsp-clients-typescript7-path)))
 
-I think Eglot didn't have this problem because Eglot relied on the project's own
-typescript `devDependency`, and since that project was pinned to an earlier version
-of the typescript package it worked. It looks like lsp-mode's typescript integration
-doesn't use the package specific typescript environment, but instead uses the global one.
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection
+                      (lambda ()
+                        (list (or (lsp-clients-typescript7-find-binary) "tsc")
+                              "--lsp" "--stdio")))
+    :activation-fn 'lsp-typescript-javascript-tsx-jsx-activate-p
+    :priority -2
+    :initialization-options (lambda () (list :supportsHoverVerbosity t))
+    :server-id 'ts7-ls)))
+
+;; Fixes bug in lsp-mode that crashes ts7's lsp
+(defun my/lsp--strip-null-values (data)
+  "Recursively remove plist/hash-table/alist keys whose value is nil."
+  (cond
+   ((hash-table-p data)
+    (let ((new (make-hash-table :test 'equal)))
+      (maphash (lambda (k v)
+                 (unless (null v)
+                   (puthash k (my/lsp--strip-null-values v) new)))
+               data)
+      new))
+   ;; plist: (:key val :key val ...)
+   ((and (consp data) (keywordp (car data)))
+    (let (result)
+      (cl-loop for (k v) on data by #'cddr
+               unless (null v)
+               do (push k result) (push (my/lsp--strip-null-values v) result))
+      (nreverse result)))
+   ;; alist: ((key . val) (key . val) ...)
+   ((and (consp data) (consp (car data)) (not (listp (caar data))))
+    (--keep (unless (null (cdr it)) (cons (car it) (my/lsp--strip-null-values (cdr it)))) data))
+   ((vectorp data) (cl-map 'vector #'my/lsp--strip-null-values data))
+   (t data)))
+
+(defun my/lsp--make-message-strip-nulls (args)
+  (list (my/lsp--strip-null-values (car args))))
+
+(with-eval-after-load 'lsp-mode
+  (advice-add 'lsp--make-message :filter-args #'my/lsp--make-message-strip-nulls))
+
+```
+
 
 Once this was done and I reloaded the lsp buffer, I was off to the races.
 
 ![typescript working](ts-working.png)
 
+Well mostly, except that we are now back to minimal eldoc info on hover due to the verbosity
+command we need to send on hover. We can accomplish this with:
+
+```elisp
+(dolist (fn '(lsp-request lsp-request-async))
+  (advice-add fn :filter-args
+              (lambda (args)
+                (if (equal (car args) "textDocument/hover")
+                    (cons (car args)
+                          (cons (plist-put (copy-sequence (cadr args))
+                                            :verbosityLevel 1)
+                                (cddr args)))
+                  args))))
+
+```
+
+And now we have documentation. Well not exactly but I'll cover that in the documentation at point section.
+
+## Verilog
+
+Lsp-mode does not have support for `slang-server`, the LSP I've been using for verilog. Luckily
+they make it easy to register new server support.
+
+```elisp
+(with-eval-after-load 'lsp-mode
+  (lsp-register-client
+   (make-lsp-client
+    :new-connection (lsp-stdio-connection "slang-server") ; adjust to actual binary/path
+    :major-modes '(verilog-mode verilog-ts-mode)          ; whichever major mode you use
+    :priority 1                                            ; higher than built-in clients
+    :server-id 'slang-ls)))
+```
+
+After adding that, I now have verilog support working as expected.
+
 ## Other Languages
 
-I tried Verilog and C++ and did not really hit any issues worth noting. Everything
+I tried C++ and did not really hit any issues worth noting. Everything
 seemed to work just fine.
 
 ## Keymap Rebind
@@ -241,7 +310,27 @@ However in lsp-mode we get:
 
 ![lsp-mode eldoc](lsp-mode-eldoc.png)
 
-The latter is significantly less helpful to me.
+The latter is significantly less helpful to me. We can partially fix this by making sure
+that the `lsp-eldoc-render-all` variable is set to `t`. 
+
+![lsp-mode eldoc 2](eldoc-all.png)
+
+We can then fix this by setting `eldoc-echo-area-use-multiline-p` to `nil`. We make these
+active anytime the `lsp-mode-hook` triggers by adding the following to the `:hook` section
+of `use-package lsp-mode`
+
+```elisp
+   (lsp-mode . (lambda()
+             (setq-local lsp-eldoc-render-all t)
+             (setq-local eldoc-echo-area-use-multiline-p nil)
+             ))
+```
+
+![lsp-mode eldoc fixed](eldoc-fixed.png)
+
+That being said, it apperas that `C-h .` doesn't work to bring up eldoc documentation buffer.
+It's not a deal breaker, as it can be opened manually with `M-x eldoc-doc-buffer` but
+it would be nice to just work.
 
 ## Conclusion
 

@@ -102,10 +102,37 @@ and expand the contents with `TAB` to see the changes in that file.
 
 ![expanded changes](expanded-changes.png)
 
-Ok so blah blah blah let's assume we don't want part of this change, how can we manage that? It turns
+Ok so let's assume we don't want part of this change, how can we manage that? It turns
 out we can type `d d` (diff do-what-i-mean) to open up the diff of all unstaged changes. This
 allows us to use the `n` and `p` keys to navigate the changes. 
 
 We can then use `s` or `k` to stage or discard individual chunks.
 
-Once done we can stage all the chunks we want to commit, and then commit with `c c`.
+Once done we can stage all the chunks we want to commit, and then commit with `c c`. This will
+pop up two windows, one with a diff buffer for the commit and another where you enter the actual
+commit message.
+
+After writing the commit it was not obvious how to proceed with the commit. It turns out you have
+to `C-c C-c` to do so. That took me a while to find and I'm not sure how you are meant to
+discover that. Eventually I noticed it tells you this in the echo buffer (and thus messages
+buffer) but only for a short time, so it went away before I noticed it.
+
+Now that you have an unmerged commit, you can push it up to the origin with `P u`. 
+
+## Merge Conflicts
+
+So lets figure out what merge conflict handling is like. I made a commit locally and a commit
+on the remote that will trigger a conflict. So let's push our local commit before fetching:
+
+![push failure](push-fail.png)
+
+Pressing `$` shows the git command line output saying that our branch is behind. So lets pull.
+
+![pull failure](pull-fail.png)
+
+So it recognized that we could not pull successfully and we have one unmerged commit and 
+one unpulled commit. However, this isn't necessarily because of a merge conflict, just that
+I have not set this machine's git config on how to automatically resolve diverged branches
+(I usually have it auto-rebase local commits on remote). 
+
+After setting that up I try a pull again.

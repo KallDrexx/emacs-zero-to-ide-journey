@@ -1,5 +1,16 @@
 # Window Management
 
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [Undoing Window Mistakes](#undoing-window-mistakes)
+  - [Persisting Buffers And Windows](#persisting-buffers-and-windows)
+    - [desktop.el](#desktopel)
+    - [easysession.el](#easysessionel)
+  - [Tabs Per File](#tabs-per-file)
+
+<!-- markdown toc end -->
+
 So far I have been bumbling my way around managing windows in Emacs, so it's time
 to actually make it fit my workflows.
 
@@ -164,3 +175,28 @@ Only one should be used, whichever makes the most sense. I have not yet decided 
 active and the overhead of reloading buffers every time I switch, so I do not have either of these
 active.
 
+
+## Tabs Per File
+
+Many modern editors normally put each open file in it's own visual tab. The default Emacs setup does not
+have this, and encourages you to use buffers. However tabs can sometimes be useful to keep track of a
+select few buffers and cycle through them without having to filter through the full list of open buffers.
+
+Back in the project management post I talked about tabs in the tab bar. That tab bar is meant to have different
+workspaces with different layouts, but is not really meant to have one layout where multiple buffers exist as
+tabs within a single window.
+
+For that functionality, we don't want a tab bar but a 
+[window tab line](https://www.gnu.org/software/emacs/manual/html_node/emacs/Tab-Line.html).  
+
+These can be enabled in the current window via `M-x tab-line-mode`. This now adds a tab set at the top of the
+current window. When I open a new file in the current buffer the new buffer opens and adds a new tab for it.
+I can then cycle through these tabs via `C-x C-<left>` and `C-x C-<right>`.
+
+Well sort of. One issue I have found is that opening a new file in the buffer with tab line mode activated
+does not automatically show the tab line in the newly opened buffer. I have to cycle tabs with the keyboard
+before seeing the tab line again. This happens because I didn't enable tab line mode globally for all windows
+with `M-x global-tab-line-mode`.
+
+So if you want this globally active then you can add `(global-tab-line-mode 1)` to the `use-package emacs`'s
+`:init` section. For me, I am not a fan of the key binds and am not sure I necessarily want tabs.

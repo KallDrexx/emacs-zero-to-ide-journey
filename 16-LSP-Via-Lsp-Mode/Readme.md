@@ -6,6 +6,7 @@
   - [What Is LSP-Mode](#what-is-lsp-mode)
   - [C#](#c)
     - [Solution Not Loading](#solution-not-loading)
+    - [Missing Diagnostics](#missing-diagnostics)
     - [IMenu Differences](#imenu-differences)
   - [Typescript](#typescript)
   - [Verilog](#verilog)
@@ -154,6 +155,25 @@ lsp-mode is showing here compared to Eglot is that lsp-mode remembers the soluti
 I made last. So opening a file in this project again automatically loads the correct solution,
 without me having to select it again. I'm sure I can script Eglot to find and auto-load the 
 solution automatically, but this is still nice.
+
+### Missing Diagnostics
+
+Just like with Eglot, we are missing diagnostics in our broken C# code when using the roslyn
+language server. 
+
+After doing some research I was able to fix this with the following advice function:
+
+```elisp
+(with-eval-after-load 'lsp-mode
+  (define-advice lsp--client-capabilities (:filter-return (caps) roslyn-pull-diagnostics-fix)
+    (when-let* ((text-document (alist-get 'textDocument caps))
+                (diagnostic    (alist-get 'diagnostic text-document)))
+      (setf (alist-get 'dynamicRegistration diagnostic) t))
+    caps))
+```
+
+After evaluating this and restarting lsp-mode, I now have working and real-time diagnostics
+coming directly from the language server.
 
 ### IMenu Differences
 
@@ -307,8 +327,32 @@ it was showing a lot of really weird errors all over the place.
 ![rust errors 2](rust-errors-2.png)
 
 Eglot was using rust-analyzer for the same project with no issues, and cargo successfully
-builds the project. I'm not sure what was going on here.
+builds the project.
 
+It turns out that by default (or at least in my default setup so far) `rust-ts-mode` buffers
+were having the `rust-ts-flymake` function as a diagnostic function in addition to the
+lsp-mode diagnostic flymake function. These errors weren't coming from the lsp-mode
+extension, but they coming from the flymake rust diagnosis.
+
+I was able to confirm this with `M-x describe-variable RET flymake-diagnostic-functions`, which
+shows the current value having both flymake functions in it.
+
+The problem seems to be that flymake's rust diagnostics are based on running `rustc` but not
+in a way that's concious of the crate and workspace I'm currently in. So it just mis-interprets
+what's going on and is generally useless.
+
+I was able to tell my lsp-mode configuration to remove the `rust-ts-flymake` diagnostic function
+from my `flymake-diagnostic-functions` when lsp-mode manages a buffer with the following in the
+`use-package lsp-mode`'s `:hook` section:
+
+```elisp
+   (lsp-managed-mode . (lambda()
+                         (when (derived-mode-p 'rust-ts-mode)
+                           (remove-hook 'flymake-diagnostic-functions 'rust-ts-flymake t))))
+```
+
+After re-evaluating and restarting lsp-mode, I now have proper lsp integration in my rust
+buffers.
 
 ## Keymap Rebind
 
@@ -411,17 +455,22 @@ lsp-mode specific `M-x lsp-find-references` command (mapped to `s-l g r` by defa
 
 ## Conclusion
 
-Lsp-mode has a lot of features and capabilities above Eglot. However, in my workflows so far the only
-advantages I can see are lsp-mode gives me are breadcrumbs and auto-loading of C# solutions. 
+Lsp-mode has a lot of features and capabilities above Eglot, but a lot of its extras are not things
+that I particularly care about (though I recognize why other developers do).
 
-On the other hand, lsp-mode seems a bit more cumbersome to me. Find all references and navigating
+For my workflows so far the main advantages that lsp-mode gives me are breadcrumbs, auto-loading of C# solutions,
+and working diagnostics for C# projects. The former two I'm pretty confident in my ability to
+customize and patch in but the latter might be a much larger concern.
+
+Lsp-mode has some quirks that show how it's not totally embedded in the built-in Eglot systems.
+Find all references and navigating
 by references is something I use a lot and remembering that if I'm using an LSP I need to use
 `C-c l g r` but if I'm in an elisp buffer I should be using `M-?`. If I'm in an elisp buffer
 then I can just `C-h .` but that doesn't work in an lsp-mode managed buffer.
 
-With the rust functionality not working for some reason (granted I didn't spend much time diagnosing it),
-the lsp-mode hover popup proving to be a big distraction anytime I touch my mouse, and other paper cuts
-I think I'm just going to stick with Eglot.
+As much as I would probably prefer the simplicity and built-in aspects of Eglot, the issue with
+the roslyn language server is hard to ignore since I do a lot of C# coding. The disadvantages
+(again, for me) of the quirks of lsp-mode aren't big enough for me to overcome that.
 
-I can see a path towards using elisp to fix the two disadvantages I have with lsp-mode, and it just feels
-better integrated with the whole Emacs infrastructure.
+I did disable lsp-ui though, as it's all too distracting for me.
+

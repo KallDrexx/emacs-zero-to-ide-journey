@@ -16,6 +16,7 @@
       - [Fixing The Error ](#fixing-the-error)
       - [Loading The Solution](#loading-the-solution)
       - [Launching Roslyn Language Server](#launching-roslyn-language-server)
+      - [Missing Diagnostics](#missing-diagnostics)
     - [Typescript](#typescript)
       - [Typescript 6 And Below](#typescript-6-and-below)
       - [Typescript 7](#typescript-7)
@@ -402,7 +403,9 @@ the `.sln` file I want, and viola. Now I have full xref, search, and diagnostic 
 whole solution.
 
 I have not found a good hook to automatically search and load a solution file by default, but
-selecting it by hand isn't too big of a deal for now.
+selecting it by hand isn't too big of a deal for now. The roslyn language server claims to have
+an `--autoLoadProjects` property and it might load the csproj, but does not seem to load the
+solution file (and thus limits a lot of utility).
 
 #### Launching Roslyn Language Server
 
@@ -419,6 +422,24 @@ by the following directive in our `init.el`
 ```
 
 Now just opening any `.cs` file and executing `M-x eglot` will start up the roslyn language server.
+
+#### Missing Diagnostics
+
+Unfortunately, as I played around with the code I realized we were missing actual diagnostic support.
+
+![no diagnostics](csharp-no-diags.png)
+
+We can see that we have completely broken C# code and the bottom still says zero warnings or errors. This
+is not the case for most other languages I have tested out.
+
+Based on my investigations, there seems to be some issue where the roslyn language server doesn't support
+`publishDiagnostics` notifications and instead uses `textDocument/diagnostic` methods that are newer. As
+far as I can tell, Eglot doesn't support that yet. So if I want a realistic C# code editing experience
+with Eglot I am probably going to have to switch to a different language server. 
+
+As the roslyn language server is the one officially written by Microsoft and used as part of their
+official C# dev kit vscode plugin, I'm a little apprehensive about doing that. I'm going to experiment
+a bit more with other languages and lsp integrations before I go that route.
 
 ### Typescript
 

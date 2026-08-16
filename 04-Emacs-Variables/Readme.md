@@ -288,7 +288,7 @@ When a new Emacs frame opens (even the initial one), it tends to open in a small
 Linux desktop this isn't a big deal due to using a tiling window manager, but on Mac it opens in
 the tiniest window by default.  
 
-I have expanded my default with the following in my `(use-package emacs` `::init` section:
+I have expanded my default with the following in my `use-package emacs` `:init` section:
 
 ```elisp
   ;; Make sure frames open with a reasonable initial size
@@ -298,3 +298,15 @@ I have expanded my default with the following in my `(use-package emacs` `::init
 
 The values specified are in rows vs columns for text. I'm not sure how that calculates if you aren't
 using a mono-spaced font though.
+
+## Remembering File Positions
+
+When you open a file, it defaults to the beginning of the file. It can be helpful to instead remember
+where you were in the file so it opens in the same spot the next time. This can be done by adding
+the following to the `:init` section of `use-package emacs` declaration:
+
+```elisp
+(save-place-mode 1)
+```
+
+

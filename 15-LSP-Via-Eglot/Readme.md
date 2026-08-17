@@ -432,14 +432,38 @@ Unfortunately, as I played around with the code I realized we were missing actua
 We can see that we have completely broken C# code and the bottom still says zero warnings or errors. This
 is not the case for most other languages I have tested out.
 
-Based on my investigations, there seems to be some issue where the roslyn language server doesn't support
-`publishDiagnostics` notifications and instead uses `textDocument/diagnostic` methods that are newer. As
-far as I can tell, Eglot doesn't support that yet. So if I want a realistic C# code editing experience
-with Eglot I am probably going to have to switch to a different language server. 
+It appears the root of the issue is that there are two types of diagnostic mechanisms in the LSP spec,
+push and pull. Push is the old mechanism and pull is a much newer mechanism. Since the roslyn language server
+does not support push, no diagnostics are shown.
 
-As the roslyn language server is the one officially written by Microsoft and used as part of their
-official C# dev kit vscode plugin, I'm a little apprehensive about doing that. I'm going to experiment
-a bit more with other languages and lsp integrations before I go that route.
+The version of Eglot that is in Emacs 30.2 does not support pull diagnostics and that's the reason nothing
+shows for me.
+
+The good news is that this issue and the Glob pattern issue previously mentioned are fixed in the latest
+version of Eglot (1.24 at the time of this writing). So we can fix the issue by upgrading. 
+
+Upgrading is usually done by the `M-x eglot-upgrade-eglot` command, but then you have to remember to execute
+that on any machine. You can address this by adding the following to your `init.el`:
+
+```elisp
+
+(require 'package)
+(let ((eglot-package (assq 'eglot package-alist)))
+  (if (not eglot-package)
+      (eglot-upgrade-eglot)
+    (when (version< (package-version-join
+                     (package-desc-version (cadr eglot-package)))
+                    "1.24")
+      (eglot-upgrade-eglot)))) 
+```
+
+This first checks if eglot is in the `packages-alist` variable, which contains a list of all packages that
+can be activated. The built-in eglot is not in there, and therefore it will trigger an upgrade. It will
+also trigger an upgrade if the package version is before 1.24. The reason for the conditional checks is so 
+that every startup time isn't checking for the latest version of eglot.
+
+![diagnostics working](csharp-diag.png)
+
 
 ### Typescript
 
@@ -486,7 +510,6 @@ With that added, now load a typescript file and run `M-x eglot`. Eglot should no
 LSP capablities.
 
 #### Better Eldoc Support
-
 
 Unfortunately, the default integration isn't perfect. If you hover over types or enums and open
 the Eldoc buffer, you will notice that the documentation is pretty lackluster.

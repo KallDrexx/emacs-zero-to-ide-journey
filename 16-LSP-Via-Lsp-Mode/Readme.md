@@ -172,8 +172,13 @@ After doing some research I was able to fix this with the following advice funct
     caps))
 ```
 
-After evaluating this and restarting lsp-mode, I now have working and real-time diagnostics
-coming directly from the language server.
+Well sort-of. This definitely worked at some point but then stopped working all of a sudden. Once
+this stopped working I could not get lsp-mode to register itself for the diganostic pull capabilities,
+and thus roslyn language server would never send it back. This should be working for the 10.0.0.0
+release that added `csharp-roslyn` support, so I am not sure why it's not working for me.
+
+I did a ton of research, trial and error, and bashing my head against LLMs for assistance, but could
+not get something workable.
 
 ### IMenu Differences
 
@@ -458,19 +463,19 @@ lsp-mode specific `M-x lsp-find-references` command (mapped to `s-l g r` by defa
 Lsp-mode has a lot of features and capabilities above Eglot, but a lot of its extras are not things
 that I particularly care about (though I recognize why other developers do).
 
-For my workflows so far the main advantages that lsp-mode gives me are breadcrumbs, auto-loading of C# solutions,
-and working diagnostics for C# projects. The former two I'm pretty confident in my ability to
-customize and patch in but the latter might be a much larger concern.
+For my workflows so far the main advantages that lsp-mode gives me are breadcrumbs and auto-loading of C# solutions. 
+Those are two things that seem possible to add in outside of the LSP functionality.
 
 Lsp-mode has some quirks that show how it's not totally embedded in the built-in Eglot systems.
-Find all references and navigating
-by references is something I use a lot and remembering that if I'm using an LSP I need to use
+Find all references and navigating by references is something I use a lot and remembering that if I'm using an LSP I need to use
 `C-c l g r` but if I'm in an elisp buffer I should be using `M-?`. If I'm in an elisp buffer
 then I can just `C-h .` but that doesn't work in an lsp-mode managed buffer.
 
-As much as I would probably prefer the simplicity and built-in aspects of Eglot, the issue with
-the roslyn language server is hard to ignore since I do a lot of C# coding. The disadvantages
-(again, for me) of the quirks of lsp-mode aren't big enough for me to overcome that.
+The lsp-ui functionality was mostly a distraction for me, as I'd rather have a side buffer with that info
+in it instead it constantly updating inline.
 
-I did disable lsp-ui though, as it's all too distracting for me.
+At a minimum though, the fact that I can't get diagnostics working with the roslyn-language-server in
+lsp-mode is a huge issue since I do a lot of C# coding. There are other language servers, but this is
+the official one maintained by Microsoft and used by their vscode C# dev kit plugin.
 
+So I'm going to stick with Eglot for now. 

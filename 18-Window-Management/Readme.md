@@ -175,6 +175,15 @@ Only one should be used, whichever makes the most sense. I have not yet decided 
 active and the overhead of reloading buffers every time I switch, so I do not have either of these
 active.
 
+This setup seemed like a perfect solution, but after some cracks started to show for me. It works well
+when the session's buffers are already active, but if you save a session with buffers that have a
+pre-requisite action then those don't come up after a restart. For example, the eldoc doc buffer does
+not come up without the `eldoc-doc-buffer` command being invoked. So if you save the doc buffer and then
+restart Emacs, that whole area of your window won't restore when loading the session.
+
+I also kept forgetting what session I was in at times, and the auto-save would then leave it in an
+unexpected state for the next load. 
+
 
 ## Tabs Per File
 
@@ -199,4 +208,17 @@ before seeing the tab line again. This happens because I didn't enable tab line 
 with `M-x global-tab-line-mode`.
 
 So if you want this globally active then you can add `(global-tab-line-mode 1)` to the `use-package emacs`'s
-`:init` section. For me, I am not a fan of the key binds and am not sure I necessarily want tabs.
+`:init` section. 
+
+## Conclusion
+
+
+After thinking about it more, `desktop-save-mode` combined with `tab-bar-mode` both gave me what I
+wanted, since I can have different projects or different views of projects in different tabs.
+
+It does have the same issue as easysession had with special buffers (like magit, eldoc, etc...) not
+coming back up with restarts, but it does give me a good visual indicator of my projects. It's a minor
+difference, but it feels like the visual tabs give me a reminder to swap workspaces and what workspaces
+I have active at any given time. I can also quickly cycle through the tabs with `C-TAB`.
+
+I go back and forth on if I want `tab-line-mode` active or not. 

@@ -8,6 +8,7 @@
     - [desktop.el](#desktopel)
     - [easysession.el](#easysessionel)
   - [Tabs Per File](#tabs-per-file)
+  - [Conclusion](#conclusion)
 
 <!-- markdown toc end -->
 
@@ -212,7 +213,6 @@ So if you want this globally active then you can add `(global-tab-line-mode 1)` 
 
 ## Conclusion
 
-
 After thinking about it more, `desktop-save-mode` combined with `tab-bar-mode` both gave me what I
 wanted, since I can have different projects or different views of projects in different tabs.
 
@@ -221,5 +221,6 @@ coming back up with restarts, but it does give me a good visual indicator of my 
 difference, but it feels like the visual tabs give me a reminder to swap workspaces and what workspaces
 I have active at any given time. I can also quickly cycle through the tabs with `C-TAB`.
 
-I go back and forth on if I want `tab-line-mode` active or not. I have it open right now to give a
-good visual guide on buffers open related to the current project, but we'll see how much it gets used.
+I did disable `tab-line-mode` because it's just not reliable for me. Half the time I open a file
+the tab line gets removed, which defeats the point.
+

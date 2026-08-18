@@ -217,7 +217,6 @@ configuration file, as they are defaults that make sense for me.
   (pixel-scroll-precision-mode t)                 ;; Enable precise pixel scrolling.
   (pixel-scroll-precision-use-momentum nil)       ;; Disable momentum scrolling for pixel precision.
   (ring-bell-function 'ignore)                    ;; Disable the audible bell.
-  (split-width-threshold 300)                     ;; Prevent automatic window splitting if the window width exceeds 300 pixels.
   (switch-to-buffer-obey-display-actions t)       ;; Make buffer switching respect display actions.
   (use-dialog-box nil)                            ;; Disable dialog boxes in favor of minibuffer prompts.
   (use-short-answers t)                           ;; Use short answers in prompts for quicker responses (y instead of yes)

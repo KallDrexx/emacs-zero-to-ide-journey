@@ -214,10 +214,88 @@ with `M-x global-tab-line-mode`.
 Although that didn't quite fix the issue either for me. The unpredictability of if and when I would see
 the tab bar, and what buffers would get added as tabs made it unreliable for me.
 
+## Other Window Placement
+
+Emacs has a lot of commands that open a buffer in the "other" window. If there is only one window/buffer
+open then it automatically splits the screen and creates another window.
+
+On my normal 16:9 1440p monitor, it automatically splits to the right giving me a side by side display. Since
+it is a widescreen monitor, this is perfect for me and what I want most of the time. However on my 
+2560x1600 monitor it actually splits to the bottom, creating a top/bottom view. In most cases this leaves
+me vertically cramped with a lot of wasted horizontal space.
+
+The algorithm Emacs uses for automated splits (via a function called `split-window-sensibly`) is
+1. If the number of rows (not pixels) is >= `split-height-threshold` then it splits to the bottom
+2. If the number of columns is >= `split-width-threshold` then it splits to the right
+3. Otherwise it splits to the bottom.
+
+The `split-height-threshold` defaults to `80` and `split-width-threshold` defaults to `160`.  With the font size
+I am running at on my 2560x1600 laptop my full size frame has a `frame-height` of 65 and a `frame-width` of 253.
+This means it is falling back to step number 3, which splits to the bottom.
+
+It looks like this only happened because I copied `(split-width-threshold 300)` from the Emacs Kickstart init.el
+configuration and misread what the comment meant. Deleting this line and restarting Emacs ahs the threshold
+set to 160, and since my 253 columns is greater than 160 it now defaults splitting to the right.
+
+## Forcing Specific Buffers In Specific Layouts
+
+We can force that when specific buffers are opened they are always opened in specific positions. For example,
+I always want eldoc to the right (so I have space to read the docs) as well as magit. I also want the bottom left of the screen
+to contain diagnostic/compilation information while having the bottom right have xref functionality.
+
+I can accomplish this via the following in my `init.el`
+
+```elisp
+(use-package window
+  :ensure nil
+  :custom
+  (display-buffer-alist
+   '(
+     ("\\*\\(Flymake diagnostics\\|Backtrace\\|Warnings\\|Compile-Log\\|compilation\\|[Hh]elp\\|Messages\\|Bookmark List\\|Ibuffer\\|Occur\\)\\*"
+      (display-buffer-in-side-window)
+      (window-height . 0.25)
+      (side . bottom)
+      (slot . 0))
+     
+     ("\\*\\(xref\\|Completions\\)"
+      (display-buffer-in-side-window)
+      (window-height . 0.25)
+      (side . bottom)
+      (slot . 1))
+     
+     
+     ("\\*\\(eldoc.*\\)\\*"
+      (display-buffer-in-side-window)
+      (window-width . 0.25)
+      (side . right)
+      (slot . 0))
+
+     ("magit\\(-[a-z]+\\)?: "
+      (display-buffer-in-side-window)
+      (window-width . 0.25)
+      (side . right)
+      (slot . 1)
+      )
+     )
+   )
+  )
+```
+
+That provides the following interface
+
+![window placement](specific-placement.png)
+
+I will probably play with this and tweak it, but it's definitely giving me purposeful areas now. 
+
+Not only that, when you are in one of the side or bottom windows and do `C-x 4 b` to open a buffer
+in the "other" window, it splits the main area as expected and not the small windows.
+
+The only downside is I need to navigate through these windows eithe with explicit `C-x b` selections
+or with `C-x o` cycling. There is probably a solution to make that easier, but `C-x b` navigation
+is ok for me for now.
+
 ## Conclusion
 
 Emacs gives a bunch of flexibility for different people's workflows. I've gone back and forth and I think
-going going the `desktop-save-mode` by itself gives me a good starting point that is reliable and predictable. 
-I may end up going the`tab-bar-mode` to organizes workspaces as the need arises.
-
-
+going going the `desktop-save-mode` by itself combined with specific buffer placements gives me a good starting point 
+that is reliable and predictable. I may end up going the`tab-bar-mode` to organizes workspaces as the need arises.

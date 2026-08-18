@@ -203,24 +203,21 @@ These can be enabled in the current window via `M-x tab-line-mode`. This now add
 current window. When I open a new file in the current buffer the new buffer opens and adds a new tab for it.
 I can then cycle through these tabs via `C-x C-<left>` and `C-x C-<right>`.
 
-Well sort of. One issue I have found is that opening a new file in the buffer with tab line mode activated
+This can be useful to group a bunch of similar buffers into a window. For example, you can open multiple
+terminal sessions in a single window and have them all tabbed in that one window.
+
+Well sort of. One issue I have found is that opening a new file in the window with tab line mode activated
 does not automatically show the tab line in the newly opened buffer. I have to cycle tabs with the keyboard
 before seeing the tab line again. This happens because I didn't enable tab line mode globally for all windows
 with `M-x global-tab-line-mode`.
 
-So if you want this globally active then you can add `(global-tab-line-mode 1)` to the `use-package emacs`'s
-`:init` section. 
+Although that didn't quite fix the issue either for me. The unpredictability of if and when I would see
+the tab bar, and what buffers would get added as tabs made it unreliable for me.
 
 ## Conclusion
 
-After thinking about it more, `desktop-save-mode` combined with `tab-bar-mode` both gave me what I
-wanted, since I can have different projects or different views of projects in different tabs.
+Emacs gives a bunch of flexibility for different people's workflows. I've gone back and forth and I think
+going going the `desktop-save-mode` by itself gives me a good starting point that is reliable and predictable. 
+I may end up going the`tab-bar-mode` to organizes workspaces as the need arises.
 
-It does have the same issue as easysession had with special buffers (like magit, eldoc, etc...) not
-coming back up with restarts, but it does give me a good visual indicator of my projects. It's a minor
-difference, but it feels like the visual tabs give me a reminder to swap workspaces and what workspaces
-I have active at any given time. I can also quickly cycle through the tabs with `C-TAB`.
-
-I did disable `tab-line-mode` because it's just not reliable for me. Half the time I open a file
-the tab line gets removed, which defeats the point.
 

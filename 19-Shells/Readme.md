@@ -1,4 +1,12 @@
-## Shells
+# Shells
+
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [ansi-term](#ansi-term)
+  - [ghostel](#ghostel)
+
+<!-- markdown toc end -->
 
 It's pretty common to need a terminal, either to execute a one off command for a more
 long lasting interactive sessions. 

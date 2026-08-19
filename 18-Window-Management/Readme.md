@@ -8,6 +8,8 @@
     - [desktop.el](#desktopel)
     - [easysession.el](#easysessionel)
   - [Tabs Per File](#tabs-per-file)
+  - [Other Window Placement](#other-window-placement)
+  - [Forcing Specific Buffers In Specific Layouts](#forcing-specific-buffers-in-specific-layouts)
   - [Conclusion](#conclusion)
 
 <!-- markdown toc end -->

@@ -25,6 +25,7 @@
     - [Verilog](#verilog)
     - [Rust](#rust)
   - [Breadcrumbs Header](#breadcrumbs-header)
+  - [Extra Keybinds](#extra-keybinds)
   - [Conclusion](#conclusion)
 
 <!-- markdown toc end -->
@@ -703,6 +704,38 @@ package adds it. This can be added to the `init.el` via:
 Now navigating to code shows the breadcrumbs header right on top.
 
 ![breadcrumbs](breadcrumbs.png)
+
+## Extra Keybinds
+
+We have easy access to some functionality with default Emacs keybinds, such as `M-.` for
+`xref-find-definition` and `M-?` for `xref-find-references`. LSPs enable additional functionality
+such as finding all implementations for a symbol, to have the LSP format the file, rename
+a symbol, or perform LSP specified code actions.
+
+We can add key binds to this that are only relevant when Eglot is active on a buffer by
+specifying a `use-package eglot` section in the `init.el`.
+
+```elisp
+(use-package eglot
+  :ensure nil
+  :init
+  (define-prefix-command 'eglot-prefix-map)
+  :bind (:map eglot-mode-map
+              ("C-c e"   . eglot-prefix-map))
+  :config
+  (define-key eglot-prefix-map (kbd "i") #'eglot-find-implementation)
+  (define-key eglot-prefix-map (kbd "d") #'eglot-find-declaration)
+  (define-key eglot-prefix-map (kbd "t") #'eglot-find-typeDef)
+  (define-key eglot-prefix-map (kbd "r") #'eglot-rename)
+  (define-key eglot-prefix-map (kbd "a") #'eglot-code-actions)
+  (define-key eglot-prefix-map (kbd "f") #'eglot-format)
+  (define-key eglot-prefix-map (kbd "s") #'my/eglot-roslyn-open-solution)
+  )
+```
+
+Once evaluated these will now work and you will see `which-key` info on the commands once you press `C-c e`. However,
+if you just type `C-c` you will see which-key tell you `e: eglot-prefix-map`. This informs you that pressing `e` will
+open up a new set of options specifically for eglot.
 
 ## Conclusion
 

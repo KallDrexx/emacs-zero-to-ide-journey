@@ -463,8 +463,8 @@ lsp-mode specific `M-x lsp-find-references` command (mapped to `s-l g r` by defa
 Lsp-mode has a lot of features and capabilities above Eglot, but a lot of its extras are not things
 that I particularly care about (though I recognize why other developers do).
 
-For my workflows so far the main advantages that lsp-mode gives me are breadcrumbs and auto-loading of C# solutions. 
-Those are two things that seem possible to add in outside of the LSP functionality.
+For my workflows the main advantage that lsp-mode gives me is auto-loading of C# solutions. 
+That seems possible to add in outside of the LSP functionality.
 
 Lsp-mode has some quirks that show how it's not totally embedded in the built-in Eglot systems.
 Find all references and navigating by references is something I use a lot and remembering that if I'm using an LSP I need to use

@@ -6,6 +6,7 @@
   - [Language Server Installation](#language-server-installation)
   - [What Is Eglot](#what-is-eglot)
   - [Xref](#xref)
+    - [Filtering Xref Results](#filtering-xref-results)
   - [Eldoc](#eldoc)
   - [Imenu](#imenu)
   - [Flymake](#flymake)
@@ -23,6 +24,7 @@
       - [Better Eldoc Support](#better-eldoc-support)
     - [Verilog](#verilog)
     - [Rust](#rust)
+  - [Breadcrumbs Header](#breadcrumbs-header)
   - [Conclusion](#conclusion)
 
 <!-- markdown toc end -->
@@ -148,6 +150,69 @@ which allows you to specify an arbitrary symbol name and get xref results for th
 ![xref apropos](xref-apropos.png)
 
 At first test with this, this seems extremely useful. The search is case insensitive and it uses a fuzzy search.
+
+### Filtering Xref Results
+
+One benefit of Emacs' project system combined with Eglot is that it is version control aware. What that
+means in practice is xref operations will ignore files ignored by git. This can help functions like
+`xref-find-references` from finding generated files that you may not want to actually come up.
+
+There are times where you want additional filtering. One example is that I routinely want to find all references
+that are not in test projects. If I am trying to create a mental map of the code flow I am not interested
+in tests, and depending on how extensive your automated tests are the `xref-find-references` results can
+contain more test locations than runtime locations.
+
+We can filter xref results by 
+[advising the function](https://www.gnu.org/software/emacs/manual/html_node/elisp/Advising-Functions.html).
+Adding an advice to a function allows us to add functionality before or after a function runs.
+
+To do this lets define a function that will filter out typescript test files, which are usually contained
+in files ending in `.spec.ts` and `.ispec.ts`. We can do this by adding the following to the `init.el`.
+
+```elisp
+;; Filter out typescript test cases from xref results
+(defvar my/ts-test-file-regexps '("\\.i?spec\\.ts\\'")
+  "List of regular expressions that match on typescript test file matches")
+
+(defun my/xref-filter-ts-test-files-from-results (xrefs)
+  "Remove typescript test files from xref results"
+  (or (seq-remove
+       (lambda (x)
+         (let ((file (xref-location-group (xref-item-location x))))
+           (seq-some (lambda (re) (string-match-p re file))
+                     my/ts-test-file-regexps)))
+       xrefs)
+      xrefs)) ;; fallback to unfiltered if we would have hidden everything
+```
+
+Like most of Emacs functionality, `xref-find-references` is the frontend which executes the `xref-backend-references`
+backend function. Eglot is wired up to `xref-backend-references` to expose LSP results into xref. So we
+can add an advice so that whenever `xref-backend-references` is called, before its results are passed back
+to the calling function it gets filtered through `my/xref-filter-ts-test-files-from-results`. We can accomplish
+this with the following functions:
+
+```elisp
+(defun my/toggle-advice (symbol how function &optional on-msg off-msg)
+  "Toggle FUNCTION as HOW advice on SYMBOL, reporting with ON-MSG/OFF-MSG."
+  (if (advice-member-p function symbol)
+      (progn (advice-remove symbol function)
+             (when off-msg (message "%s" off-msg)))
+    (advice-add symbol how function)
+    (when on-msg (message "%s" on-msg))))
+
+
+(defun my/xref-toggle-ts-test-file-filter ()
+  "Toggle hiding of TypeScript test files in xref results."
+  (interactive)
+  (my/toggle-advice 'xref-backend-references :filter-return
+                    #'my/xref-filter-ts-test-files-from-results
+                    "xref: hiding typescript test files"
+                    "xref: showing typescript test files"))
+```
+
+This adds a function we can re-use later to add or remove advices to a function and an interactive function
+to explicitely enable or disable the xref filtering. After evaluating this you can remove typescript
+test files from xref via `M-x my/xref-toggle-ts-test-file-filter`, and add them back by re-running it.
 
 ## Eldoc
 
@@ -613,6 +678,31 @@ pulling up `C-M-i` (`completion-at-point`). So everything is working with that o
 Rust was straight-forward, though I did have the hiccup that `rust-analyzer` wasn't actually
 installed. After doing `rustup component add rust-analyzer`, navigating to a rust file and
 using `M-x eglot` just worked.
+
+## Breadcrumbs Header
+
+As you scroll around in a file it's easy to lose context on where your cursor is. Even when viewing
+a relatively small function, the signature of that function can still be cut off. Even if you see the
+function signature, you may find it useful to know the enclosing class/namespace the cursor is in.
+
+Most editors solve this by having the top of the buffer show some indication of where the cursor
+is in relation to the code.
+
+Eglot doesn't have this built in, but the [breadcrumbs package](https://github.com/joaotavora/breadcrumb)
+package adds it. This can be added to the `init.el` via:
+
+```elisp
+
+(use-package breadcrumb
+  :ensure t
+  :config
+  (breadcrumb-mode t)
+  )
+```
+
+Now navigating to code shows the breadcrumbs header right on top.
+
+![breadcrumbs](breadcrumbs.png)
 
 ## Conclusion
 

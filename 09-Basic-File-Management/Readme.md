@@ -235,5 +235,6 @@ Even using`dired` sometimes ends up being more convienient for general browsing,
 that I find myself sometimes reaching for it instead of `treemacs`.
 
 Treemacs comes in handy in some cases, but for me the biggest day-to-day boon I 
-got from installing it was its icon pack for `dired`.
+got from installing it was its icon pack for `dired`. In fact, most of the time
+I completely forget treemacs is even installed and active.
 

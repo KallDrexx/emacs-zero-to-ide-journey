@@ -5,6 +5,7 @@
 
   - [ansi-term](#ansi-term)
   - [ghostel](#ghostel)
+    - [Opening Multiple Shell Instances](#opening-multiple-shell-instances)
 
 <!-- markdown toc end -->
 
@@ -86,3 +87,25 @@ Typing `C-c C-e` puts the terminal in emacs mode, where I can move the cursor ar
 Emacs keyboard commands and mark/copy/paste output that I want.
 
 The performance feels great and I haven't noticed any issues with it so far.
+
+### Opening Multiple Shell Instances
+
+One thing that's not very obvious is how to open multiple independent terminal instances. At my day
+job to run the product I usually have 4 terminals running:
+
+1. A short lived terminal for compilation, database migrations, and other small scripts
+2. An instance of the API running locally
+3. An instance of the queue processor running locally
+4. An instance of our admin panel.
+
+In Webstorm I usually have the bottom dock area setup with a bunch of terminal tabs that I can swap
+between. However with ghostel it was not obvious how to have multiple terminal sessions active
+at one time. `M-x ghostel` goes to the existing instance that's active and I can use `M-x ghostel-other`
+to open a second one, but after that `M-x ghostel-other` just cycles through the two existing terminals.
+
+After some investigation it appears that you can open a fresh ghostel by using `C-u M-x ghostel`. The
+`C-u` prefix tells ghostel to start a new session.
+
+Apparently this is a common thing in Emacs, where some commands take the `C-u` prefix without a number
+to adjust their behavior in some ways, and the prefix opening up a new shell is how other Emacs 
+terminal packages behave.

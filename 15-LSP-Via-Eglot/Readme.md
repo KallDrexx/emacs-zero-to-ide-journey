@@ -249,12 +249,36 @@ completely different monitor.
 
 ## Imenu
 
-Emacs has a function called `imenu` (bound to `M-g i`) which provides a minibuffer completion menu of top level symbols in the
+Emacs has a function called `imenu` (bound to `M-g i`) which provides a minibuffer completion 
+menu of top level symbols in the
 current buffer that can be navigateid to. So if you are in a file that contains a lot of functions and you
 know a keyword from the function you want to navigate to, the imenu is a quick way to jump right to it.
 
-This is quick because it's only root level symbols for the current file and thus doesn't need to look
-through the entire project. 
+That being said I am struggling to make use out of it. In most cases it is a multi-tier list based
+on the current file's structure. The first tier is always root level items (e.g. functions, classes,
+etc...). 
+
+If what you are looking for doesn't have nested items than that's great, but if you are looking for
+a method of a class than you first need to select the class then press enter and then you can filter
+on methods to find the one you are looking for. 
+
+In the bast case you are in a C# project which has limited root items and therefore it's just
+mildly annoying to select the class first to get to the next tier. In the worst case you are
+in a Rust or Typescript file and need to know ahead of time what level the function you
+are looking at is in and which symbols contain it. 
+
+Like many parts of Emacs, when you get frustrated by something you then find out that it's actually
+configurable. This can be altered by the `imenu-flatten` variable. When set to `prefix` it will
+list all items prefixed with the containing items. This allows much more flexible searching,
+especially when you may have multiple classes/modules with similarly named functions (like `Add()`).
+
+![imenu](imenu.gif)
+
+This can be made permanant by adding the following to your `use-package emacs`'s `:custom` section:
+
+```elisp
+(imenu-flatten 'prefix)
+```
 
 ## Flymake
 

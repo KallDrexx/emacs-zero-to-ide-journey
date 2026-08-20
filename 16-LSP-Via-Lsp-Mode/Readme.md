@@ -180,15 +180,6 @@ release that added `csharp-roslyn` support, so I am not sure why it's not workin
 I did a ton of research, trial and error, and bashing my head against LLMs for assistance, but could
 not get something workable.
 
-### IMenu Differences
-
-`M-x imenu` is now enhanced in that it first allows me to pick a class/struct, and presents
-me with a second menu of properties and methods within the selected type. 
-
-![imenu first level](csharp-imenu1.png)
-
-![imenu second level](csharp-imenu2.png)
-
 ## Typescript
 
 I added the following to the `use-package lsp-mode`'s `:hook` section

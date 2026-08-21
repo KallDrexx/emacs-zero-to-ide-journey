@@ -66,6 +66,31 @@ The fact that this remembers the last compilation command is a blessing and a cu
 not remember the last command on a project by project basis but globally, so if you need to
 swap between projects you will constantly have to change the command.
 
+Compilation buffers default to keeping the point at the top of the buffer and not scroll
+as the contents of the buffer scrolls. This is confusing for me because generally errors
+and final status are the most important things to me and those tend to be at the bottom. I will
+scroll up if I need to see more details, but the initial context for me is usually at the end
+of the compilation output.
+
+This can be fixed by adding the following to the `use-package emacs`'s `:custom` section:
+
+```elisp
+(compilation-scroll-output t)
+```
+
+The shell that `M-x compile` runs compilation in does not handle a lot of modern console
+commands very well, and it can't actually do positional updates. So if you have a compilation
+command that has its current status in a single spot it will end up scrolling each status
+update as a new line. It will also show console escape characters for a lot of functionality.
+
+If you are using the `ghostel` shell, you can have all compilation commands run through
+ghostel (and thus fix these issues) by adding the following to `use-package ghostel`'s `:custom` section:
+
+```elisp
+(ghostel-compile-global-mode 1)
+```
+
+
 ## Per Directory Local Variables
 
 When opening files and projects Emacs looks for a `.dir-locals.el` file, and if it exists it
@@ -324,4 +349,97 @@ This allows us to do the following to write out the tasks I previously wrote the
 That's much easier to read and quickly define more. Even though it's much more concise, I am
 still able to `M-x my/rml/run-video-relay` to run the video relay executable for my project.
 
-This is mostly all I need from a task runner, so I'm pretty happy with the final result.
+### Grouping Project Tasks Together
+
+In the above task list, there are two minor inconvieniences.
+
+The first is that you have to repeat the project name for every task for that project, and hope
+you don't accidentally mistype it in one of them.
+
+The bigger inconvienience though is that this always adds every task's interactive function
+into Emacs, thus always showing them in `M-x`. This may not be a big issue if your `tasks.el`
+is only used on a single machine, but since I have my configuration synced across multiple
+personal and work devices this causes a lot of command bloat.
+
+We can address both of these by having a macro that generates a `my/deftask` call for a specific
+project, but *only* if Emacs knows about that project. The idea is that if Emacs doesn't have
+knowledge of the task that project probably doesn't exist on that computer and therefore isn't
+relevant.
+
+The macro to do this is:
+
+```elisp
+
+(defmacro my/def-project-tasks (project-name &rest specs)
+  "Define multiple tasks for PROJECT-NAME only if PROJECT-NAME is a project that
+is currently recognized by Emacs. The SPECS is (NAME . DEFTASK-PLIST) to define
+the non-project-name properties of the task.
+
+This is primarily used to allow synchronization of this tasks.el file without
+polluting the interactive function list with tasks for projects that are not
+on that host."
+  (declare (indent defun))
+  `(when (my/find-relevant-project-root ,project-name)
+     ,@(mapcar (pcase-lambda (`(,name . ,args))
+                 `(my/deftask ,name :project-name ,project-name ,@args))
+               specs)
+     )
+  )
+```
+
+The task definitions now can be replaced with:
+
+```elisp
+(my/def-project-tasks "rust-media-libs"
+  (my/tasks/rml/run-build
+    :description "Runs a compilation for the rust-media-libs-project"
+    :compile "cargo build"
+    :new-buffer-name "rml: compile")
+  
+  (my/tasks/rml/run-tests
+    :description "Runs all tests for the rust-media-libs project"
+    :compile "cargo test"
+    :new-buffer-name "rml: tests")
+  
+  (my/tasks/rml/run-video-relay
+    :description "Runs the video relay executable for the rust-media-libs project"
+    :shell "cargo run --bin video-relay"
+    :new-buffer-name "rml: video-relay")
+  )
+```
+
+Now on my personal laptop and work computer these commands won't even exist because I do not have
+this project on those machines. Likewise, any tasks I define for work projects wont' show up
+on my personal machines. It also made it slightly easier to type.
+
+### Ghostel Command Execution
+
+If you are using the `ghostel` package, then you can have the `:compile` and `:shell` commands run through
+ghostel instead of normal shells. Besides the more modern terminal handling, it actually allows for easier
+buffer management and buffer re-use.
+
+This can be done by modifying the `my/deftask` macro's compile/shell section with:
+
+```elisp
+         ,(when compile
+            `(let ((ghostel-compile-buffer-name ,new-buffer-name))
+               (ghostel-compile ,compile))
+            )
+         ,(when shell
+            `(let ((buffer (get-buffer-create (or ,new-buffer-name "*ghostel-run*"))))
+               (display-buffer buffer)
+               (prog1
+                   (ghostel-exec buffer shell-file-name ;; Use the system shell to execute the command
+                                 (list shell-command-switch ,shell))
+                 (with-current-buffer buffer
+                   ;; Ghostel kills variables upon entering its mode, so we need to set this after
+                   ;; exec has run so it still is set on the buffer
+                   (setq-local ghostel-kill-buffer-on-exit nil))
+                 )
+               buffer))
+```
+
+
+## Conclusion
+
+The macro setup is mostly all I need from a task runner, so I'm pretty happy with the final result.

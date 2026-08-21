@@ -7,6 +7,9 @@
   - [Per Directory Local Variables](#per-directory-local-variables)
   - [Custom Interactive Functions](#custom-interactive-functions)
     - [Making It Easier With Macros](#making-it-easier-with-macros)
+    - [Grouping Project Tasks Together](#grouping-project-tasks-together)
+    - [Ghostel Command Execution](#ghostel-command-execution)
+  - [Conclusion](#conclusion)
 
 <!-- markdown toc end -->
 

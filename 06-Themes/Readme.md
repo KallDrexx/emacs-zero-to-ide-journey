@@ -5,6 +5,7 @@
 
   - [Loading A Theme](#loading-a-theme)
   - [External Themes](#external-themes)
+  - [When To Load Themes](#when-to-load-themes)
 
 <!-- markdown toc end -->
 
@@ -83,3 +84,14 @@ can either go in your `:init` section of the `use-package` of the package that
 installs the theme, or your `use-package emacs` call if it's a built-in theme.
 
 ![final with theme](theme-config.png)
+
+## When To Load Themes
+
+Themes can be loaded pretty early (external themes must be loaded at least after
+the package manager has been setup though). 
+
+However, I have found it useful to always have my `(load-theme)` call at the very
+end of my `init.el` file. This means that if I ever have a syntax error in my
+`init.el` I will immediately notice because the theme will be wrong. Without this,
+I have had scenarios where it took me quite a while to realize something was wrong
+and I only had half my expected functionality.

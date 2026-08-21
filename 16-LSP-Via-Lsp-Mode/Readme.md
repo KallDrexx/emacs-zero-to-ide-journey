@@ -7,7 +7,6 @@
   - [C#](#c)
     - [Solution Not Loading](#solution-not-loading)
     - [Missing Diagnostics](#missing-diagnostics)
-    - [IMenu Differences](#imenu-differences)
   - [Typescript](#typescript)
   - [Verilog](#verilog)
   - [C++](#c)

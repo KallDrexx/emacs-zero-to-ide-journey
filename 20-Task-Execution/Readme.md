@@ -5,6 +5,8 @@
   - [Ad-Hoc Commands](#ad-hoc-commands)
     - [Compilations](#compilations)
   - [Per Directory Local Variables](#per-directory-local-variables)
+  - [Custom Interactive Functions](#custom-interactive-functions)
+    - [Making It Easier With Macros](#making-it-easier-with-macros)
 
 <!-- markdown toc end -->
 
@@ -139,3 +141,187 @@ in the `init.el`.
 You just have to be aware that if you download a project with that same variable name wiht malicious
 code, it could cause execution of code you didn't intend. You will need to evaluate that risk on
 your own.
+
+## Custom Interactive Functions
+
+I spent a while playing with the `.dir-locals.el` concept and looking for a package when I realized
+I can just define custom interactive functions just like I have already been doing.
+
+My Emacs configuration is synced across multiple personal and work machines, so I need tasks to work
+even if the absolute path of a project root is different. Luckily, we can ask Emacs for every
+known project root with the `project-known-project-root` variable. So my initial idea is to have
+each task get the relevant absolute root from the emacs known project list, and execute from there.
+
+I created an `~/.emacs.d/tasks.el` file to keep all this logic together, and tell my `init.el` to
+load it via:
+
+```elisp
+(load-file (locate-user-emacs-file "tasks.el"))
+```
+
+
+We can then add functions to run the same tasks as in the `.dir-local.el` example with the following:
+
+```elisp
+(defun my/find-relevant-project-root (string)
+  "Searches all known project roots for one ending in the specified string"
+  (seq-find (lambda (path) (string-suffix-p (concat string "/") path))
+            (project-known-project-roots)))
+
+
+(defun my/rml/run-build ()
+  "Runs a compilation for the rust-media-libs project"
+  (interactive)
+  (let ((default-directory (my/find-relevant-project-root "rust-media-libs")))
+    (if (not default-directory)
+        (message "No known project for 'rust-media-libs'")
+      (compile "cargo build")
+      (with-current-buffer "*compilation*"
+        (rename-buffer "*compilation: rml build*" t))
+      )
+    )
+  )
+
+(defun my/rml/run-tests ()
+  "Runs tests for the rust-media-libs project"
+  (interactive)
+  (let ((default-directory (my/find-relevant-project-root "rust-media-libs")))
+    (if (not default-directory)
+        (message "No known project for 'rust-media-libs'")
+      (compile "cargo test")
+      (with-current-buffer-window "*compilation*"
+          (rename-buffer "*compilation: rml test*" t))
+      )
+    )
+  )
+
+(defun my/rml/run-video-relay ()
+  "Runs the video relay project for the rust-media-libs project"
+  (interactive)
+  (let ((default-directory (my/find-relevant-project-root "rust-media-libs")))
+    (if (not default-directory)
+        (message "No known project for 'rust-media-libs'")
+      (async-shell-command "cargo run --bin video-relay")
+      (with-current-buffer "*Async Shell Command*"
+        (rename-buffer "*Async Shell: rml video-relay*" t))
+      )
+    )
+  )
+```
+
+With the power of orderless and completions read, I can type `M-x rml build` to select `my/rml/run-build`, which
+will now open a compilation specific for the `cargo build` run. Since we rename the created buffers they won't
+conflict or overwrite each other when they run.
+
+While this isn't scoped to the actual Emacs project I am working in (like the `.dir-locals.el` solution),
+that is ok because it also means I am able to start an application for one Emacs project while coding
+for another one. Since I bounce around a lot of different git repositories for my day job this is less
+context I have to keep track of.
+
+### Making It Easier With Macros
+
+So each of those functions can be a bit time consuming to write and it's mostly
+boilerplate. We can actually take advantage of elisp's macro system too make this
+vastly easier to write out.
+
+Instead of the `defun`s specified above we can replace it with the following macro:
+
+```elisp
+(defun my/find-relevant-project-root (string)
+  "Searches all known project roots for one ending in the specified string"
+  (seq-find (lambda (path) (string-suffix-p (concat string "/") path))
+            (project-known-project-roots)))
+
+(require 'cl-lib)
+(cl-defmacro my/deftask (task-name &key compile shell new-buffer-name description project-name dir)
+  "Defines an interactive function to run a project task. You must pass in a name for the task,
+ which will be the name for the interactive function (what M-x executes).
+
+The function for the task is a shell command that can either be executed with the Emacs compile
+function (via :compile) or as an async shell execution (via :shell).
+
+The task can be executed from a specific directory. A specific directory can be specified with the
+:dir keyword or you can use the root of a known Emacs project with :project. Only one of these
+should be specified.
+
+When :project is used, it should be the inner most directory from the absolute path of the project
+root. So if `C-x p p` shows the directory \"~/code/test/\" then you can specify ':project \"test\"`.
+
+By default, compilations use the same buffer and will overwrite each other. Likewise async shell
+executions always have a buffer named '*Async Shell Command*'. The task specific buffer can be
+given a specific name via the :new-buffer-name keyword.
+
+The created interactive function can be given a description with the :description keyword.
+"
+  (declare (indent defun))
+  (unless (or shell compile)
+    (error ":compile or :shell must be specified"))
+  (unless (or project-name dir)
+    (error ":project-name or :dir must be specified"))
+  (unless (not (and project-name dir))
+    (error "Both :project-name and :dir cannot be specified, only one should be specified"))
+  `(defun ,task-name ()
+     ,description
+     (interactive)
+     (let ((default-directory 
+            ;; set default-directory either to the specified project's root or the cwd
+            ,(cond
+              (project-name `(my/find-relevant-project-root ,project-name))
+              (dir dir)
+              )))
+       
+       (if (not default-directory)
+           ;; Should only be here if project-name was provided but no project root was resolved
+           (message "No known project for '%s'" ,project-name)
+         ,(when compile
+            `(progn
+               (compile ,compile)
+               ,(if new-buffer-name
+                    `(with-current-buffer "*compilation*"
+                       (rename-buffer ,new-buffer-name)))
+               )
+            )
+         ,(when shell
+            `(progn
+               (async-shell-command ,shell)
+               ,(if new-buffer-name
+                   `(with-current-buffer "*Async Shell Command*"
+                      (rename-buffer ,new-buffer-name)))
+               )
+            )
+         )
+       )
+     )
+  )
+```
+
+This may be daunting if you haven't worked with lisp before (and it was for me initially
+trying to write it) but it allows us to outilize a `my/deftask` to define interactive functions
+for different tasks.
+
+This allows us to do the following to write out the tasks I previously wrote the `defun`s for:
+
+```elisp
+(my/deftask my/rml/run-build
+  :project-name "rust-media-libs"
+  :description "Runs a compilation for the rust-media-libs-project"
+  :compile "cargo build"
+  :new-buffer-name "*compilation: rml build*")
+
+(my/deftask my/rml/run-tests
+  :project-name "rust-media-libs"
+  :description "Runs all tests for the rust-media-libs project"
+  :compile "cargo test"
+  :new-buffer-name "*compilation: rml tests*")
+
+(my/deftask my/rml/run-video-relay
+  :project-name "rust-media-libs"
+  :description "Runs the video relay executable for the rust-media-libs project"
+  :shell "cargo run --bin video-relay"
+  :new-buffer-name "*Async Shell: rml video-relay*")
+```
+
+That's much easier to read and quickly define more. Even though it's much more concise, I am
+still able to `M-x my/rml/run-video-relay` to run the video relay executable for my project.
+
+This is mostly all I need from a task runner, so I'm pretty happy with the final result.

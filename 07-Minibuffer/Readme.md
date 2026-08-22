@@ -104,6 +104,7 @@ spaces in our minibuffer.
     (keymap-set icomplete-fido-mode-map "SPC" #'self-insert-command))
 ```
 
+
 Now if you re-evaluate the buffer, typing `M-x ev<Space>buff` will show `ev buff` in the
 minibuffer.
 
@@ -174,7 +175,7 @@ its too flexible, and makes it really hard to find the expected match when filte
 a large list of matches (such as all files within a project). It rarely gives me what I want
 in those cases, and thus I can find what I am looking for faster without it.
 
-# Minibuffer Word Wrapping
+## Minibuffer Word Wrapping
 
 With marginalia activated and an Emacs window of limited width, it is possible to
 have minibuffer completion options to be word wrapped. This has the unfortunate

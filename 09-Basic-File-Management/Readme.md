@@ -6,9 +6,9 @@
   - [Dired](#dired)
     - [Quick Searching](#quick-searching)
   - [Treemacs](#treemacs)
+  - [Addendum](#addendum)
 
 <!-- markdown toc end -->
-
 
 So far we've used `C-x C-f` (the `find-file` command) to open our `init.el` file,
 but that's not the full extent of file management capabilities that Emacs has.

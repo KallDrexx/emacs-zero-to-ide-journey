@@ -1,4 +1,18 @@
 # Project Management
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [What Am I Looking For?](#what-am-i-looking-for)
+  - [project.el](#projectel)
+  - [Working With Project Files](#working-with-project-files)
+  - [Working With Project Specific Buffers](#working-with-project-specific-buffers)
+  - [Nested And Non-Git Projects](#nested-and-non-git-projects)
+  - [Switching Between Projects](#switching-between-projects)
+  - [Project Specific Frames](#project-specific-frames)
+  - [Project Specific Tabs](#project-specific-tabs)
+  - [Saving Frame / Tab Configurations](#saving-frame--tab-configurations)
+
+<!-- markdown toc end -->
 
 ## What Am I Looking For?
 

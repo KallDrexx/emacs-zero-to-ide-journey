@@ -16,6 +16,7 @@
   - [Line Numbers](#line-numbers)
   - [Mac Specific Settings](#mac-specific-settings)
   - [Default Frame Size](#default-frame-size)
+  - [Remembering File Positions](#remembering-file-positions)
 
 <!-- markdown toc end -->
 

@@ -9,6 +9,7 @@
   - [Committing](#committing)
   - [Merge Conflicts](#merge-conflicts)
   - [Cloning A New Repository](#cloning-a-new-repository)
+  - [Working In A New Branch](#working-in-a-new-branch)
   - [Conclusion](#conclusion)
 
 <!-- markdown toc end -->

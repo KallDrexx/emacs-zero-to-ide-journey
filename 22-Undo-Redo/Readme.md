@@ -1,4 +1,14 @@
 # Undo and Redo
+<!-- markdown toc start -->
+**Table of Contents**
+
+  - [How Undo Works](#how-undo-works)
+  - [Visualing Undo](#visualing-undo)
+  - [Increasing Undo State Storage](#increasing-undo-state-storage)
+  - [Persisting Undo State](#persisting-undo-state)
+  - [Conclusion](#conclusion)
+
+<!-- markdown toc end -->
 
 Undo and redo in Emacs works differently than in most editors, and it can be confusing.
 

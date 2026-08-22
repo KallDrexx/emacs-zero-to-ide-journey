@@ -170,6 +170,23 @@ and push successfully.
 Sometimes I need to clone a repository that I do not have locally. This can be done with the
 `M-x magit-clone`. 
 
+## Working In A New Branch
+
+Working in a new branch has a gotcha that I was not expecting, so that's worth pointing out.
+
+You can create a new branch via `b n`. The first prompt that comes up is what branch
+you want to *base* your new branch off of. I got confused at first thinking it was asking
+the name of my new branch and couldn't get things working as I expected.
+
+Once you pick your new branch's base branch, then you pick the name for your new branch.
+
+However, this is probably not what you wanted. This created the branch but crucially 
+did not open that branch and you will still be in the branch you were previously in. 
+You will still need to `b b` to actually check out the branch.
+
+In order to do the equivalent of `git checkout -b` (create the branch and check it out immediately)
+you will want to do `b c`.
+
 ## Conclusion
 
 Magit definitely has a lot of options and definitely seems to mimic the command line interface.

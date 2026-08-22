@@ -142,6 +142,3 @@ it a ton, but when I need to reference something that I added then removed it be
 
 Emac's undo tree visualized with `vundo` and persisted across sessions comes really close to this for my
 purposes.
-
-
-Testing abcdm

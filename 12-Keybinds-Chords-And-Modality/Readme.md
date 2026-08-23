@@ -10,6 +10,7 @@
     - [God Mode](#god-mode)
     - [Sticky Keys](#sticky-keys)
   - [End Result](#end-result)
+  - [Addendum](#addendum)
 
 <!-- markdown toc end -->
 
@@ -537,3 +538,39 @@ It also has the benefit of being OS wide, so I can now paste into my terminal wi
 plus another key.
 
 I am really happy with how it's working out for me so far.
+
+## Addendum
+
+After almost a month into my Emacs journey I think I can say I have given standard Emacs editing
+a chance. However even with sticky keys I still can't wire my brain up for it. 
+
+The biggest issue for me is navigating text documents. I don't mind modifier keys being used for
+shortcuts, but it's proving really difficult for me to adapt to using modifier keys for normal
+text navigation.
+
+`C-v` works ok for quickly scrolling until you get towards the end, at which point the remaining navigation
+has to be done with something else. `M-f` to move forward to the end of the word and `M-b` to
+move to the beginning of the word are not exact opposites, so you can't undo an extra `M-f` with
+a `M-b` and vice versa. I know there are deterministic rules (that aren't even that complex, mostly
+around how each considers punctuation) but I have yet to internalize it and it throws me off every
+time. 
+
+`M-e` goes to the end of paragraphs, but if you want to go to the beginning of the 2nd
+paragraph you have to go `M-e M-e M-a`, and I haven't found an easy way to navigate
+by paragraphs but starting at the next paragraph. `M-e` has to be done multiple times if
+there are trailing spaces at the end of your text. 
+
+Even with sticky keys, the constant modifier key for navigation feels really awkard to me, and
+then when you want back and forth navigation where you need to swap between `C` and `M`, it
+just makes it feel awkard.
+
+Navigation keys don't seem to support repeat mode, so I can't even do `M-e e e M-a`.
+
+All in all, Emacs mode feels like it's good if you are used to using arrow key and page
+navigation, but for me it just feels too awkard to use for normal text navigation.
+
+Now that I have more of my Emacs configured how I like it I am using it more in my day
+to day life. So I am starting to work on getting comfortable of Meow (still with sticky
+keys), as that seems the best of both worlds. It gives me predictable and fast
+keyboard text navigation (with inline indicators for varied stepping) as well as allowing
+me to use normal Emacs hotkeys when needed.

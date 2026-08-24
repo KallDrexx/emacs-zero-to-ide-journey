@@ -20,3 +20,7 @@ and seem to be well regarded. Either one probably works fine.
 They both also have an `Emacs.App` and `Emacs Client.App` that can be symlinked into your `/Applications`
 folder, so they can be found (though this will need to be done manually).
 
+I have no windows machines so I cannot give guidance there :).
+
+
+

@@ -28,11 +28,11 @@ new packages usually blocks Emacs operations while with `elpaca.el` you can cont
 using most of Emacs functionality while the package installs in the background. 
 
 I can definitely see how this would be useful for more advanced users or users
-who are always modifying what packages are installed or packages themselves on
-a regular basis. I tried it briefly and the asynchronous nature threw me off as
-a new Emacs user. I tried to use functionality and random things did not work as
+who are always modifying what packages are installed on a regular basis. I tried it 
+briefly and the asynchronous nature threw me off as
+a new Emacs user. I tried to use some piece of functionality and random things did not work as
 expected (because the packages have yet to install). Then "randomly" things would
-start working as I expect.
+start working.
 
 `straight.el` is one that's heavily recommended because it downloads packages
 as source repositories instead of tarballs, which in theory make it easier
@@ -58,7 +58,7 @@ to your `init.el`:
 ```
 
 The `(require 'package)` is important, as it ensures that the package management
-system is enabled. If it isn't, then there is no `package-archives` list and an
+system is brought into scope. If it isn't, then there is no `package-archives` list and an
 error will occur.
 
 ## Use-Package Macro

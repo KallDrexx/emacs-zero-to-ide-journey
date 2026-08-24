@@ -20,20 +20,20 @@ This series is around 16 Readme files right now all in different subfolders. Eac
 subfolder contains separate set of images. It's all contained within it's own
 git repository.
 
-When I want to work on these writings, I'm mostly focused only on this directory
+When I want to work on these writings, I'm mostly focused only on the directory
 structure I have placed this series' git repository in (`~/code/emacs-zero-to-ide-journey`).
-If I am looking at a file in one repository it is rare that I am searching or trying
-to open files in another directory.
+If I am looking at a file in one repository I will tend to do many operations on the files
+in that repository before switching to a new one.
 
-Let's say that I want to find all files that in the tree that contain the word `emacs`. If
+For me it is rare that I am working on a file independently of other files around it. If I
+am looking at one file and want to open another file or directory, it is usually related
+to the context of the file I'm already looking at.
+
+Let's say that I want to find all files in the git repository that contains the word `emacs`. If
 I `M-x find-name-dired` it will default to the directory of the file I am currently editing.
 I know the file exists, but is in some (possibly nested) subdirectory that is at the root of
 the repository. So when I `M-x find-name-dired` I have to manually use the backspace to go up
 to the root directory of my git clone (and hope I don't press it too many times).
-
-For me, it is rare that I am working on a file in isolation of other files around it. If I
-am looking at one file and want to open another file or directory, it is usually related
-to the context of the file I'm already looking at.
 
 In most IDEs, This is solved by having multiple instances of the editor for each project I am
 actively working on at the time. Each editor is scoped only to the directory that I provided to

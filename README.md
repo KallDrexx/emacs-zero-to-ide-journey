@@ -29,7 +29,7 @@ tested and verified.
 1. [Markdown Support](11-Markdown-Support/Readme.md)
 1. [Keybinds, Chords, and Modality](12-Keybinds-Chords-And-Modality/Readme.md)
 1. [Project Management](13-Project-Management/Readme.md)
-1. [Syntax Highlighting](14-Syntax-Highlighting)
+1. [Syntax Highlighting](14-Syntax-Highlighting/Readme.md)
 1. [LSP Via Eglot](15-LSP-Via-Eglot/Readme.md)
 1. [LSP Via LSP-Mode](16-LSP-Via-Lsp-Mode/Readme.md)
 1. [Git](17-Git/Readme.md)

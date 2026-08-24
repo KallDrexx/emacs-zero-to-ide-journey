@@ -20,30 +20,29 @@
 
 <!-- markdown toc end -->
 
-There are quite a few variables built into emacs that controls it's
-behavior. 
+There are quite a few variables built into emacs that controls how it behaves.
 
 Emacs contains a lot of documentation. Most variables can have its documentation
 shown by typing `M+x describe-variable`.
 
 ## Customization UI
 
-Emacs has a customization user interface, which allows changing behavior of
+Emacs has a special customization user interface which allows changing behavior of
 emacs through a graphical interface rather than programmatically. In theory this
-lets aspects of Emacs changes to be more discoverable.
+lets Emacs immense customizability become more discoverable.
 
 When changes through the customization system are made, it is saved by writing
 the equivalent elisp code. 
 
-However, it's not just manual customizations via the UI that can trigger code
-generation. There is a function called `customize-set-variable`, which sets the 
-default value for buffer local variables. Calling this function marks the variable as
-set in the customization system, and thus triggers code generation. This is a setting
+However it's not just manual customizations via the UI that can trigger code
+generation. There is a function called `customize-set-variable` which will call a setter
+function for a variable if one exists. These setter functions will tend to trigger code
+generation to save some important details in the customization file. This is a setting
 used in a lot of configurations and thus there's no getting around it customization
 code-gen.
 
 By default, this generated code goes into your initialization file (e.g. 
-`init.el`). This can be a bit messy, but you can add code to your emacs
+`init.el`). This can be a bit messy but you can add code to your emacs
 initialization to keep auto-generated customization code in a separate file.
 This is done by adding the following elisp:
 
@@ -61,9 +60,9 @@ as the `init.el` file.
 ### Menu bar
 
 If you don't like the menu bar at the top (File, Edit, etc...) then that can
-be disabled with `(menu-bar-mode -1)`. That being said I find the menu bar
+be disabled with `(menu-bar-mode -1)`. That being said I find that the menu bar
 does not take much space and is helpful for remembering key binds and 
-major mode functionality. Therefore, I leave it enabled with `(menu-bar-mode 1)`.
+major mode functionality, so I leave it enabled with `(menu-bar-mode 1)`.
 
 ### Disabling the Scroll Bar
 
@@ -102,7 +101,7 @@ sets the value of the variable, but executes any side effects required for the n
 to take effect.
 
 `setq` and `setq-default` do not run these. Instead `(customize-set-variable <variable> <value>)`
-should be used, which will execute the `:set` function if they exist.
+should be used, which will execute the `:set` function if it exists.
 
 If you are unsure a variable is buffer local vs global, you can always use `M-x describe-variable`.
 However, most variables I have come across are buffer local, and the global ones tend to start
@@ -160,8 +159,8 @@ You still get indicators to know when some of the text has gone past the screen.
 Between the last post and this post we have 3 different type of settings
 
 1. Global variables (e.g. `gc-cons-threshold` and `custom-file`
-2.* Functions to call on initialization (e.g. `menu-bar-mode`)
-3.* Buffer local variables whose defaults we want to set (e.g. `tab-width`)
+2. Functions to call on initialization (e.g. `menu-bar-mode`)
+3. Buffer local variables whose defaults we want to set (e.g. `tab-width`)
 
 While global variable settings should still be set at the beginning of your 
 `init.el` file via `setq` calls, we can organize the latter two using the

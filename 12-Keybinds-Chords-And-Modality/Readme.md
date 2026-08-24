@@ -569,8 +569,5 @@ Navigation keys don't seem to support repeat mode, so I can't even do `M-e e e M
 All in all, Emacs mode feels like it's good if you are used to using arrow key and page
 navigation, but for me it just feels too awkard to use for normal text navigation.
 
-Now that I have more of my Emacs configured how I like it I am using it more in my day
-to day life. So I am starting to work on getting comfortable of Meow (still with sticky
-keys), as that seems the best of both worlds. It gives me predictable and fast
-keyboard text navigation (with inline indicators for varied stepping) as well as allowing
-me to use normal Emacs hotkeys when needed.
+I need to spend more time with Evil and Meow to figure out if those end up being a better fit
+long term.

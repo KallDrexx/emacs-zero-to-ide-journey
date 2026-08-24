@@ -67,7 +67,7 @@ along-side the available interactive functions.
 ![marginalia m-x example](marginalia-1.png)
 
 It also adds useful info to other minibuffer completions, such as the find file
-results.
+4results.
 
 ![marginalia find file](marginalia-2.png)
 

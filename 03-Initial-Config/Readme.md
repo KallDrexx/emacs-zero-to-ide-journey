@@ -4,19 +4,20 @@ Starting a brand new instance of Emacs shows the following:
 
 ![initial screen](emacs-start.png)
 
-It's pretty bare bones, but the links are useful. One initially helpful thing about
-this interface is you can hover the mouse over many UI elements and get some some
-information about what it means. So for example, the `U` means it's UTF-8 encoded,
-the first `%` means the buffer is read-only, etc...
+It's pretty bare bones, but the links are useful. One helpful thing about
+this interface is that you can hover the mouse over many UI elements and get 
+information about what it means. Hovering over the `U` at the bottom shows that
+it's a UTF-8 document, the `%` means the buffer is read-only, etc...
 
-It's also worth going through the tutorial to understand the key combinations and
-nomenclature, even if the intention is to use VIM bindings later.
+It's worth going through the tutorial to understand the key combinations and
+terminology, even if the intention is to use VIM bindings later.
 
-Emacs is primarily a heavily pre-configured elisp interpreter, which means we can
-write any elisp code we want and execute it inline. Since configuration is not done
+Emacs is primarily a pre-configured elisp interpreter, which means we can
+write any elisp code we want and execute it inline. This means that configuration is not done
 with a custom DSL but instead actual elisp code. This is powerful because we are able
-to actually write configuration code, evaluate it live, and if it does what we want 
-only then save it to a persistent configuration file.
+to actually write code, evaluate it live, and if it does what we want 
+only then save it to a persistent configuration file. It also means that our configuration
+can change how Emacs operates in any way we want.
 
 To get started with a bare bones configuration, we will want to create a new file
 in the `~/.emacs.d/` folder named `init.el`. There are 
@@ -31,8 +32,8 @@ In here you can type in `~/.emacs.d/init.el`.
 
 ![find-file minibuffer](find-file.png)
 
-One thing that's not immediately apparent is if a directory or file exists already
-you can press tab to complete from a partial value. So if the `~/.emacs.d` directory
+One thing that's not immediately apparent is that if a directory or file exists already
+you can press tab to complete what you have entered. So if the `~/.emacs.d` directory
 already exists, you can do `~/.em<tab>` and that should auto-complete to `~/.emacs.d`
 (assuming there are no other home directories with that prefix). Many mini-buffer
 commands support this, so it's useful to keep in mind.
@@ -48,7 +49,7 @@ A couple of configuration settings I have seen in a variety of places for perfor
 are:
 
 ```elisp
-(setq gc-cons-threshold #x40000000)
+(setq gc-cons-threshold #x40000000) ;; 1GB
 (setq read-process-output-max (* 1024 1024 4))
 (setq native-comp-jit-compilation t)
 ```
@@ -57,7 +58,7 @@ are:
 variable (the second argument) to the corresponding value (the third argument).
 
 The `gc-cons-threshold` increases the garbage collection threshold so that emacs waits
-longer before performing stop-the-world GC collection. This can help stuttering.
+longer before performing stop-the-world GC collection. This can reduce how often Emacs stutters.
 
 The `read-process-output-max` I have seen as a way to help performance with tooling that
 interacts with external processes, specifically LSPs. It allows for larger buffer sizes
@@ -66,8 +67,7 @@ and thus can read data from external processes in much fewer calls.
 The `native-comp-jit-compilation` is being set to `t`, which is a way to specify that
 the variable has a value. It's usually used for boolean values (where saying it has no
 value is done by giving it the `nil` value). This specific setting tells emacs to run
-just-in-time compilation of elisp to improve performance. If this is disabled than it
-always runs any non-natively compiled elisp code through the slower interpreter.
+just-in-time compilation of elisp to improve performance. 
 
 `native-comp-jit-compilation` is active by default, the configuration I have here ends
 up being keeping the default. I list it here because some advice is to set this to `nil`

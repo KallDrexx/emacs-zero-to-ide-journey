@@ -49,7 +49,7 @@ A couple of configuration settings I have seen in a variety of places for perfor
 are:
 
 ```elisp
-(setq gc-cons-threshold #x40000000) ;; 1GB
+(setq gc-cons-threshold 10000000) ;; 10MB
 (setq read-process-output-max (* 1024 1024 4))
 (setq native-comp-jit-compilation t)
 ```
@@ -58,7 +58,11 @@ are:
 variable (the second argument) to the corresponding value (the third argument).
 
 The `gc-cons-threshold` increases the garbage collection threshold so that emacs waits
-longer before performing stop-the-world GC collection. This can reduce how often Emacs stutters.
+longer before performing stop-the-world GC collection. Larger values stutter less often
+but stutter for longer. At one point one of the Emacs maintainers recommended
+[no more than 100x the current value and to experiment](https://www.reddit.com/r/emacs/comments/brc05y/comment/eofulix/).
+
+The default value is 800KB, I upped it to 10MB just to give it a bit more room.
 
 The `read-process-output-max` I have seen as a way to help performance with tooling that
 interacts with external processes, specifically LSPs. It allows for larger buffer sizes
